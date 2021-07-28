@@ -300,6 +300,7 @@ void matchBoundingBoxes(std::vector<cv::DMatch> &matches, std::map<int, int> &bb
 
                 if(bbContainsKpMatchInCurrFrame && bbContainsKpMatchInPrevFrame)
                 {
+                    std::cout << "pre matched!" << bbInPrevFrame->boxID << " " << bbInCurrFrame->boxID;
                     boundingBoxMatches[bbInPrevFrame->boxID][bbInCurrFrame->boxID]++;
                     std::cout << "matched!";
                 }

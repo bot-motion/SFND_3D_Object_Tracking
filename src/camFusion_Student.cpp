@@ -294,11 +294,14 @@ void matchBoundingBoxes(std::vector<cv::DMatch> &matches, std::map<int, int> &bb
             for (auto keypointMatch = matches.begin(); keypointMatch != matches.end(); ++keypointMatch)
             {
                 bool bbContainsKpMatchInCurrFrame = (bbInCurrFrame->roi.contains(currFrame.keypoints[keypointMatch->trainIdx].pt));
+                std::cout << "bbContainsKpMatchInCurrFrame " << bbContainsKpMatchInCurrFrame << std::endl;
+
                 bool bbContainsKpMatchInPrevFrame =  (bbInPrevFrame->roi.contains(prevFrame.keypoints[keypointMatch->queryIdx].pt));
 
                 if(bbContainsKpMatchInCurrFrame && bbContainsKpMatchInPrevFrame)
                 {
                     boundingBoxMatches[bbInPrevFrame->boxID][bbInCurrFrame->boxID]++;
+                    std::cout << "matched!";
                 }
             }
         }

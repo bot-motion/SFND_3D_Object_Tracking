@@ -165,13 +165,11 @@ int experiment(string detectorType, string descriptorType, std::map<std::string,
 
 
         /* DETECT & CLASSIFY OBJECTS */
-        bVis = true;
         float confThreshold = 0.2;
         float nmsThreshold = 0.4;        
         detectObjects((dataBuffer.end() - 1)->cameraImg, (dataBuffer.end() - 1)->boundingBoxes, confThreshold, nmsThreshold,
-                      yoloBasePath, yoloClassesFile, yoloModelConfiguration, yoloModelWeights, bVis);
+                      yoloBasePath, yoloClassesFile, yoloModelConfiguration, yoloModelWeights, bWait);
 
-        bVis = false;
         cout << "#2 : DETECT & CLASSIFY OBJECTS done" << endl;
 
 

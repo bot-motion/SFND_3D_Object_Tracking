@@ -2,8 +2,12 @@
 #include <iostream>
 #include <algorithm>
 #include <numeric>
+#include <utility>
+#include <opencv2/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/features2d.hpp>
+#include <opencv2/xfeatures2d.hpp>
 
 #include "camFusion.hpp"
 #include "dataStructures.h"
@@ -29,9 +33,8 @@ void clusterLidarWithROI(std::vector<BoundingBox> &boundingBoxes, std::vector<Li
         // project Lidar point into camera
         Y = P_rect_xx * R_rect_xx * RT * X;
         cv::Point pt;
-        // pixel coordinates
-        pt.x = Y.at<double>(0, 0) / Y.at<double>(2, 0); 
-        pt.y = Y.at<double>(1, 0) / Y.at<double>(2, 0); 
+        pt.x = Y.at<double>(0, 0) / Y.at<double>(0, 2); // pixel coordinates
+        pt.y = Y.at<double>(1, 0) / Y.at<double>(0, 2);
 
         vector<vector<BoundingBox>::iterator> enclosingBoxes; // pointers to all bounding boxes which enclose the current Lidar point
         for (vector<BoundingBox>::iterator it2 = boundingBoxes.begin(); it2 != boundingBoxes.end(); ++it2)
@@ -61,13 +64,12 @@ void clusterLidarWithROI(std::vector<BoundingBox> &boundingBoxes, std::vector<Li
     } // eof loop over all Lidar points
 }
 
-/* 
-* The show3DObjects() function below can handle different output image sizes, but the text output has been manually tuned to fit the 2000x2000 size. 
-* However, you can make this function work for other sizes too.
-* For instance, to use a 1000x1000 size, adjusting the text positions by dividing them by 2.
-*/
-void show3DObjects(std::vector<BoundingBox> &boundingBoxes, cv::Size worldSize, cv::Size imageSize, bool bWait)
+
+void show3DObjects(std::vector<BoundingBox> &boundingBoxes, cv::Size2f worldSize, cv::Size imageSize, bool bWait)
 {
+	//to better visual lidar point top view, fix the starting world size as 6
+	const float START_HEIGHT = 6.8;
+	worldSize.height = worldSize.height - START_HEIGHT;
     // create topview image
     cv::Mat topviewImg(imageSize, CV_8UC3, cv::Scalar(255, 255, 255));
 
@@ -80,6 +82,10 @@ void show3DObjects(std::vector<BoundingBox> &boundingBoxes, cv::Size worldSize, 
         // plot Lidar points into top view image
         int top=1e8, left=1e8, bottom=0.0, right=0.0; 
         float xwmin=1e8, ywmin=1e8, ywmax=-1e8;
+        if(it1->lidarPoints.size() < 3){
+        	//skip the bounding box display if it contains less than three points.
+        	continue;
+        }
         for (auto it2 = it1->lidarPoints.begin(); it2 != it1->lidarPoints.end(); ++it2)
         {
             // world coordinates
@@ -90,7 +96,7 @@ void show3DObjects(std::vector<BoundingBox> &boundingBoxes, cv::Size worldSize, 
             ywmax = ywmax>yw ? ywmax : yw;
 
             // top-view coordinates
-            int y = (-xw * imageSize.height / worldSize.height) + imageSize.height;
+            int y = (-(xw- START_HEIGHT) * imageSize.height / worldSize.height) + imageSize.height;
             int x = (-yw * imageSize.width / worldSize.width) + imageSize.width / 2;
 
             // find enclosing rectangle
@@ -102,39 +108,41 @@ void show3DObjects(std::vector<BoundingBox> &boundingBoxes, cv::Size worldSize, 
             // draw individual point
             cv::circle(topviewImg, cv::Point(x, y), 4, currColor, -1);
         }
-
         // draw enclosing rectangle
         cv::rectangle(topviewImg, cv::Point(left, top), cv::Point(right, bottom),cv::Scalar(0,0,0), 2);
 
         // augment object with some key data
         char str1[200], str2[200];
-        sprintf(str1, "id=%d, #pts=%d", it1->boxID, (int)it1->lidarPoints.size());
-        putText(topviewImg, str1, cv::Point2f(left-250, bottom+50), cv::FONT_ITALIC, 2, currColor);
+        sprintf(str1, "box id=%d, #pts=%d", it1->boxID, (int)it1->lidarPoints.size());
+        putText(topviewImg, str1, cv::Point2f(left-250, bottom+50), cv::FONT_ITALIC, 1, currColor);
         sprintf(str2, "xmin=%2.2f m, yw=%2.2f m", xwmin, ywmax-ywmin);
-        putText(topviewImg, str2, cv::Point2f(left-250, bottom+125), cv::FONT_ITALIC, 2, currColor);  
+        putText(topviewImg, str2, cv::Point2f(left-250, bottom+125), cv::FONT_ITALIC, 1, currColor);
+        cout<<"xmin="<<xwmin<<",yw="<<ywmax-ywmin<<",id="<<it1->boxID<<",pts="<<it1->lidarPoints.size()<<endl;
     }
 
     // plot distance markers
-    float lineSpacing = 2.0; // gap between distance markers
-    int nMarkers = floor(worldSize.height / lineSpacing);
+    int nMarkers = 10;
+    float lineSpacing =  worldSize.height / float(nMarkers);
+
     for (size_t i = 0; i < nMarkers; ++i)
     {
         int y = (-(i * lineSpacing) * imageSize.height / worldSize.height) + imageSize.height;
         cv::line(topviewImg, cv::Point(0, y), cv::Point(imageSize.width, y), cv::Scalar(255, 0, 0));
     }
 
-    // display image
-    string windowName = "3D Objects";
-    cv::namedWindow(windowName, 1);
-    cv::imshow(windowName, topviewImg);
-
     if(bWait)
     {
-        cv::waitKey(0); // wait for key to be pressed
+        std::cout << "show3DObjects - press key to continue..." << std::endl;
+    	// display image
+		string windowName = "3D Objects";
+		cv::namedWindow(windowName, 1);
+		cv::imshow(windowName, topviewImg);
+        cv::waitKey(0); 
     }
 }
 
 
+// Associate a given bounding box with the keypoints it contains
 void clusterKptMatchesWithROI(BoundingBox &boundingBox, std::vector<cv::KeyPoint> &kptsPrev, std::vector<cv::KeyPoint> &kptsCurr, std::vector<cv::DMatch> &kptMatches)
 {
     std::vector<cv::DMatch> kptsROI;
@@ -157,7 +165,6 @@ void clusterKptMatchesWithROI(BoundingBox &boundingBox, std::vector<cv::KeyPoint
     {
         if(kpt.distance < threshold)
         {
-            // boundingBox.keypoints.push_back(kptsCurr[kpt.trainIdx]); //nobody is using this
             boundingBox.kptMatches.push_back(kpt);
         }
     }
@@ -277,45 +284,52 @@ void computeTTCLidar(std::vector<LidarPoint> &lidarPointsPrev,
 }
 
 
-
-
-static int findMaxInVector(const vector<int> &vec){
-	return std::distance(vec.begin(), std::max_element(vec.begin(), vec.end()));
-}
-
 void matchBoundingBoxes(std::vector<cv::DMatch> &matches, std::map<int, int> &bbBestMatches, DataFrame &prevFrame, DataFrame &currFrame)
 {
-    std::vector<std::vector<int>> boundingBoxMatches;
+    map<int, map<int, int>> boxMatchings;       // the first key is a boxID in the current frame; the second key is a boxID in the prev frame.
+                                                // the value is the number of kp matches between both boxes. 
 
-    for (auto bbInCurrFrame = currFrame.boundingBoxes.begin(); bbInCurrFrame != currFrame.boundingBoxes.end(); ++bbInCurrFrame)
+    for (auto match : matches)
     {
-        for (auto bbInPrevFrame = prevFrame.boundingBoxes.begin(); bbInPrevFrame != prevFrame.boundingBoxes.end(); ++bbInPrevFrame)
-        {
-            for (auto keypointMatch = matches.begin(); keypointMatch != matches.end(); ++keypointMatch)
+        cv::KeyPoint prevKeypoint = prevFrame.keypoints[match.queryIdx];
+        cv::KeyPoint currKeypoint = currFrame.keypoints[match.trainIdx];
+
+        int boxPrev = -1, boxCurr = -1;
+
+        for (auto box : prevFrame.boundingBoxes)
+            if(box.roi.contains(prevKeypoint.pt)) 
             {
-                bool bbContainsKpMatchInCurrFrame = (bbInCurrFrame->roi.contains(currFrame.keypoints[keypointMatch->trainIdx].pt));
-                std::cout << "bbContainsKpMatchInCurrFrame " << bbContainsKpMatchInCurrFrame << std::endl;
-
-                bool bbContainsKpMatchInPrevFrame =  (bbInPrevFrame->roi.contains(prevFrame.keypoints[keypointMatch->queryIdx].pt));
-
-                if(bbContainsKpMatchInCurrFrame && bbContainsKpMatchInPrevFrame)
-                {
-                    std::cout << "pre matched!" << bbInPrevFrame->boxID << " " << bbInCurrFrame->boxID;
-                    boundingBoxMatches[bbInPrevFrame->boxID][bbInCurrFrame->boxID]++;
-                    std::cout << "matched!";
-                }
+                boxPrev = box.boxID;
+                break;
             }
+
+        for (auto box : currFrame.boundingBoxes)
+            if(box.roi.contains(currKeypoint.pt)) 
+            {
+                boxCurr = box.boxID;
+                break;
+            }          
+
+        if (boxPrev == -1 || boxCurr == -1) continue;
+
+        bool foundFirstKpMatchForCurrBox = boxMatchings.find(boxCurr) == boxMatchings.end();
+        if (foundFirstKpMatchForCurrBox) 
+        {
+            map<int, int> a;
+            boxMatchings.insert(make_pair(boxCurr, a));
         }
+
+        bool foundFirstKpMatchForPrevBox = boxMatchings[boxCurr].find(boxPrev) == boxMatchings[boxCurr].end();
+        if (foundFirstKpMatchForPrevBox)
+            boxMatchings[boxCurr].insert(make_pair(boxPrev, 0));
+
+        boxMatchings[boxCurr][boxPrev]++;  // increase kp match count
     }
 
-    for (int currBoxIdPrevFrame = 0; currBoxIdPrevFrame <= boundingBoxMatches.size(); ++currBoxIdPrevFrame)
+    for(auto boxMatch : boxMatchings)
     {
-        std::vector<int> boxIDsInPrevFrame = boundingBoxMatches[currBoxIdPrevFrame];   
-        int bestMatchingBoxId = findMaxInVector(boxIDsInPrevFrame);
-        if(boundingBoxMatches[currBoxIdPrevFrame][bestMatchingBoxId] > 0)
-        {
-			bbBestMatches[prevFrame.boundingBoxes[currBoxIdPrevFrame].boxID] = currFrame.boundingBoxes[bestMatchingBoxId].boxID;
-		}
+        int currBox = boxMatch.first;
+        int bestPrevBox = max_element(boxMatch.second.begin(), boxMatch.second.end(), [] (const std::pair<int,int>& a, const std::pair<int,int>& b)->bool{ return a.second < b.second; })->first;
+        bbBestMatches.insert(make_pair(currBox, bestPrevBox));
     }
 }
-

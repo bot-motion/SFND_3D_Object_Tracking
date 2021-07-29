@@ -12,7 +12,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/features2d.hpp>
 #include <opencv2/xfeatures2d.hpp>
-#include <opencv2/xfeatures2d/nonfree.hpp>
+#include <opencv2/xfeatures2d/nonfree.hpp>  
 
 #include "dataStructures.h"
 #include "matching2D.hpp"
@@ -23,8 +23,16 @@
 
 using namespace std;
 
-int experiment(string detectorType, string descriptorType, std::map<std::string, std::vector<float>> &res);
-void printResult(std::map<std::string, std::vector<float>> &res);
+struct ExperimentResult
+{
+    string detectorType;
+    string descriptorType;
+    double ttcLidar;
+    double ttcCamera;
+};
+
+int experiment(string detectorType, string descriptorType, std::map<std::string, std::vector<ExperimentResult>> &result, bool bWait);
+void printResult(std::map<std::string, std::vector<ExperimentResult>> &result);
 void runSeriesOfExperiments();
 
 
@@ -39,26 +47,26 @@ int main(int argc, const char *argv[])
     {
 	    string detectorType = "SIFT";     //SHITOMASI, HARRIS, FAST, BRISK, ORB, AKAZE, SIFT
 	    string descriptorType = "SIFT";   // BRIEF, ORB, FREAK, AKAZE, SIFT
-	    std::map<std::string, std::vector<float>> result;
-	    experiment(detectorType, descriptorType,  result);
+	    std::map<std::string, std::vector<ExperimentResult>> result;
+	    experiment(detectorType, descriptorType,  result, true);
 	    printResult(result);
     }
 }
 
 
 
-void printResult(std::map<std::string, std::vector<float>> &res)
+void printResult(std::map<std::string, std::vector<ExperimentResult>> &result)
 {
-	for(auto test : res)
+	for(auto test : result)
     {
-		auto &detector_extraction_name = test.first;
+		auto &detectorName = test.first;
 		auto &data = test.second;
 
 		ostringstream ss;
-		ss << std::fixed << std::setprecision(1)<<detector_extraction_name << ", ";
+		ss << std::fixed << std::setprecision(1) << detectorName << ", ";
 		for(auto &item : data)
         {
-			ss << item << ", ";
+			ss << item.ttcLidar << ", " << item.ttcCamera << ", ";
 		}
 		std::cout << ss.str() << std::endl;
 	}
@@ -67,12 +75,12 @@ void printResult(std::map<std::string, std::vector<float>> &res)
 
 void runSeriesOfExperiments()
 {
-	std::map<std::string, std::vector<float>> results;
+	std::map<std::string, std::vector<ExperimentResult>> results;
 
 	for(auto detector:{"SHITOMASI", "HARRIS","FAST", "BRISK", "ORB", "AKAZE", "SIFT"}){
 		for(auto descriptor: {"BRIEF", "ORB", "FREAK", "SIFT"}){
 			if(string(detector).compare("SIFT") == 0 && string(descriptor).compare("ORB") == 0) continue;
-			experiment(detector, descriptor, results);
+			experiment(detector, descriptor, results, false);
 		}
 	}
 
@@ -81,7 +89,7 @@ void runSeriesOfExperiments()
 
 
 
-int experiment(string detectorType, string descriptorType, std::map<std::string, std::vector<float>> &res)
+int experiment(string detectorType, string descriptorType, std::map<std::string, std::vector<ExperimentResult>> &result, bool bWait)
 {
     /* INIT VARIABLES AND DATA STRUCTURES */
 
@@ -190,9 +198,7 @@ int experiment(string detectorType, string descriptorType, std::map<std::string,
         clusterLidarWithROI((dataBuffer.end()-1)->boundingBoxes, (dataBuffer.end() - 1)->lidarPoints, shrinkFactor, P_rect_00, R_rect_00, RT);
 
         // Visualize 3D objects
-        bVis = true;
-        show3DObjects((dataBuffer.end()-1)->boundingBoxes, cv::Size2f(4.0, 8.5), cv::Size(800, 800), bVis);
-        bVis = false;
+        show3DObjects((dataBuffer.end()-1)->boundingBoxes, cv::Size2f(4.0, 8.5), cv::Size(800, 800), bWait);
 
         cout << "#4 : CLUSTER LIDAR POINT CLOUD done" << endl;
         
@@ -266,9 +272,7 @@ int experiment(string detectorType, string descriptorType, std::map<std::string,
             map<int, int> bbBestMatches;
             matchBoundingBoxes(matches, bbBestMatches, *(dataBuffer.tail_prev()), *(dataBuffer.end()-1)); // associate bounding boxes between current and previous frame using keypoint matches
            
-			bVis = true;
-			show3DObjects((dataBuffer.end()-1)->boundingBoxes, cv::Size2f(4.0, 8.5), cv::Size(800, 800), bVis);
-			bVis = false;
+			show3DObjects((dataBuffer.end()-1)->boundingBoxes, cv::Size2f(4.0, 8.5), cv::Size(800, 800), bWait);
             //// EOF STUDENT ASSIGNMENT
 
             // store matches in current data frame
@@ -305,7 +309,6 @@ int experiment(string detectorType, string descriptorType, std::map<std::string,
                 {
                     //// STUDENT ASSIGNMENT
                     //// TASK FP.2 -> compute time-to-collision based on Lidar data (implement -> computeTTCLidar)
-                	cout<<"current lidar points ="<<currBB->lidarPoints.size()<<", previous lidar points "<<prevBB->lidarPoints.size()<<endl;
                     double ttcLidar; 
                     computeTTCLidar(prevBB->lidarPoints, currBB->lidarPoints, sensorFrameRate, ttcLidar);
                     //// EOF STUDENT ASSIGNMENT
@@ -315,16 +318,20 @@ int experiment(string detectorType, string descriptorType, std::map<std::string,
                     //// TASK FP.4 -> compute time-to-collision based on camera (implement -> computeTTCCamera)
                     double ttcCamera;
                     clusterKptMatchesWithROI(*currBB, dataBuffer.tail_prev()->keypoints, (dataBuffer.end() - 1)->keypoints, (dataBuffer.end() - 1)->kptMatches);
-                    
-                    
                     computeTTCCamera(dataBuffer.tail_prev()->keypoints, (dataBuffer.end() - 1)->keypoints, currBB->kptMatches, sensorFrameRate, ttcCamera);
-                    bVis = false;
                     //// EOF STUDENT ASSIGNMENT
-                    cout<<"TTC Lidar :"<<ttcLidar<<", TTC Camera : "<<ttcCamera<<endl;
-                    string detector_extraction_name = detectorType + "_"+ descriptorType;
-                    res[detector_extraction_name].push_back(ttcCamera);
-                    bVis = true;
-                    if (bVis)
+
+                    cout << "TTC Lidar :" << ttcLidar << ", TTC Camera : " << ttcCamera << endl;
+
+                    string detectorName = detectorType + "_"+ descriptorType;
+                    ExperimentResult r;
+                    r.descriptorType = descriptorType;
+                    r.detectorType = detectorType;
+                    r.ttcCamera = ttcCamera;
+                    r.ttcLidar = ttcLidar;
+                    result[detectorName].push_back(r);
+
+                    if (bWait)
                     {
                         cv::Mat visImg = (dataBuffer.end() - 1)->cameraImg.clone();
                         showLidarImgOverlay(visImg, currBB->lidarPoints, P_rect_00, R_rect_00, RT, &visImg);
@@ -340,7 +347,6 @@ int experiment(string detectorType, string descriptorType, std::map<std::string,
                         cout << "Press key to continue to next frame" << endl;
                         cv::waitKey(0);
                     }
-                    bVis = false;
 
                 } // eof TTC computation
             } // eof loop over all BB matches            

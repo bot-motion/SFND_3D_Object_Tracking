@@ -47,6 +47,7 @@ struct ExperimentResult
     std::string imgID;
     int numOfKeypointsDetected;
     int numOfKeypointsMatched;
+    double processingTime;
 };
 
 #endif /* dataStructures_h */

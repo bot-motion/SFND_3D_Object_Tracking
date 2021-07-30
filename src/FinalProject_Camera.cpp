@@ -102,7 +102,7 @@ int experiment(string detectorType, string descriptorType, std::map<std::string,
     string imgPrefix = "KITTI/2011_09_26/image_02/data/000000"; // left camera, color
     string imgFileType = ".png";
     int imgStartIndex = 0; // first file index to load (assumes Lidar and camera names have identical naming convention)
-    int imgEndIndex = 18;   // last file index to load
+    int imgEndIndex = 70;   // last file index to load [there are 78 images total]
     int imgStepWidth = 1; 
     int imgFillWidth = 4;  // no. of digits which make up the file index (e.g. img-0001.png)
 
@@ -166,6 +166,8 @@ int experiment(string detectorType, string descriptorType, std::map<std::string,
 
         cout << "#1 : LOAD IMAGE " << imgFullFilename << " INTO BUFFER done" << endl;
 
+        // start time measurement for current frame
+        double startTime = (double)cv::getTickCount();
 
         /* DETECT & CLASSIFY OBJECTS */
         float confThreshold = 0.2;
@@ -323,6 +325,8 @@ int experiment(string detectorType, string descriptorType, std::map<std::string,
 
                     cout << "TTC Lidar :" << ttcLidar << ", TTC Camera : " << ttcCamera << endl;
 
+                    double processingTime = 1000.0 * (((double)cv::getTickCount() - startTime) / (double)cv::getTickFrequency());
+
                     string detectorName = detectorType + "_"+ descriptorType;
                     ExperimentResult r;
                     r.descriptorType = descriptorType;
@@ -332,6 +336,7 @@ int experiment(string detectorType, string descriptorType, std::map<std::string,
                     r.numOfKeypointsDetected = (dataBuffer.end() - 1)->keypoints.size();
                     r.numOfKeypointsMatched = (dataBuffer.end() - 1)->kptMatches.size();
                     r.imgID = frame.imgFile;
+                    r.processingTime = processingTime;
                     result[detectorName].push_back(r);
 
                     if (bWait)

@@ -39,7 +39,7 @@ void runSeriesOfExperiments();
 /* MAIN PROGRAM */
 int main(int argc, const char *argv[])
 {
-    if (argv[1] == "-series")
+    if (strcmp(argv[1], "-series") == 0)
     {
 	    runSeriesOfExperiments();
     }
@@ -77,8 +77,10 @@ void runSeriesOfExperiments()
 {
 	std::map<std::string, std::vector<ExperimentResult>> results;
 
-	for(auto detector:{"SHITOMASI", "HARRIS","FAST", "BRISK", "ORB", "AKAZE", "SIFT"}){
-		for(auto descriptor: {"BRIEF", "ORB", "FREAK", "SIFT"}){
+	for(auto detector:{"SHITOMASI", "HARRIS","FAST", "BRISK", "ORB", "AKAZE", "SIFT"})
+    {
+		for(auto descriptor: {"BRISK", "ORB"})   // "FREAK", "SIFT"
+        {
 			if(string(detector).compare("SIFT") == 0 && string(descriptor).compare("ORB") == 0) continue;
 			experiment(detector, descriptor, results, false);
 		}

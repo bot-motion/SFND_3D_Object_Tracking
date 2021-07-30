@@ -63,7 +63,8 @@ void printResult(std::map<std::string, std::vector<ExperimentResult>> &result)
 		ss << std::fixed << std::setprecision(1) << "detector_type, descriptor_type, img_id, lidar_ttc, camera_ttc " << std::endl;
 		for(auto &item : data)
         {
-			ss << item.detectorType << ", " << item.descriptorType << ", " << item.imgID << ", " << item.ttcLidar << ", " << item.ttcCamera << ", " << std::endl;
+			ss << item.detectorType << ", " << item.descriptorType << ", " << item.imgID << ", " << item.ttcLidar << ", ";
+            ss << item.ttcCamera << ", " << item.numOfKeypointsDetected << ", " << item.numOfKeypointsMatched  << std::endl;
 		}
 		std::cout << ss.str() << std::endl;
 	}

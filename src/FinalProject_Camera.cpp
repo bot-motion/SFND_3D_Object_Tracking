@@ -19,17 +19,10 @@
 #include "objectDetection2D.hpp"
 #include "lidarData.hpp"
 #include "camFusion.hpp"
-#include "RingBuffer.h"
+
 
 using namespace std;
 
-struct ExperimentResult
-{
-    string detectorType;
-    string descriptorType;
-    double ttcLidar;
-    double ttcCamera;
-};
 
 int experiment(string detectorType, string descriptorType, std::map<std::string, std::vector<ExperimentResult>> &result, bool bWait);
 void printResult(std::map<std::string, std::vector<ExperimentResult>> &result);
@@ -39,16 +32,20 @@ void runSeriesOfExperiments();
 /* MAIN PROGRAM */
 int main(int argc, const char *argv[])
 {
-    if (strcmp(argv[1], "-series") == 0)
+    if (argc > 1)
     {
-	    runSeriesOfExperiments();
+        if (strcmp(argv[1], "-series") == 0)
+        {
+	        runSeriesOfExperiments();
+        }
     }
     else
     {
-	    string detectorType = "SIFT";     //SHITOMASI, HARRIS, FAST, BRISK, ORB, AKAZE, SIFT
-	    string descriptorType = "SIFT";   // BRISK, ORB, AKAZE, SIFT
+	    string detector = "SIFT";     //SHITOMASI, HARRIS, FAST, BRISK, ORB, AKAZE, SIFT
+	    string descriptor = "SIFT";   // BRISK, ORB, AKAZE, SIFT
 	    std::map<std::string, std::vector<ExperimentResult>> result;
-	    experiment(detectorType, descriptorType,  result, true);
+        
+	    experiment(detector, descriptor, result, true);
 	    printResult(result);
     }
 }
@@ -63,10 +60,10 @@ void printResult(std::map<std::string, std::vector<ExperimentResult>> &result)
 		auto &data = test.second;
 
 		ostringstream ss;
-		ss << std::fixed << std::setprecision(1) << detectorName << ", ";
+		ss << std::fixed << std::setprecision(1) << detectorName << std::endl << "img_id    |   lidar   | camera " << std::endl;
 		for(auto &item : data)
         {
-			ss << item.ttcLidar << ", " << item.ttcCamera << ", ";
+			ss << item.imgID << ", " << item.ttcLidar << ", " << item.ttcCamera << ", " << std::endl;
 		}
 		std::cout << ss.str() << std::endl;
 	}
@@ -139,8 +136,7 @@ int experiment(string detectorType, string descriptorType, std::map<std::string,
     // misc
     double sensorFrameRate = 10.0 / imgStepWidth; // frames per second for Lidar and camera
     int dataBufferSize = 2;       // no. of images which are held in memory (ring buffer) at the same time
-//    vector<DataFrame> dataBuffer; // list of data frames which are held in memory at the same time
-    RingBuffer<DataFrame> dataBuffer(dataBufferSize); //class RingBuffer implements the logic of ring buffer, and provided some identical interfaces as std::vector
+    vector<DataFrame> dataBuffer; // list of data frames which are held in memory at the same time
     bool bVis = false;            // visualize results
 
     /* MAIN LOOP OVER ALL IMAGES */
@@ -162,6 +158,9 @@ int experiment(string detectorType, string descriptorType, std::map<std::string,
         frame.cameraImg = img;
         frame.imgFile = imgNumber.str();
         dataBuffer.push_back(frame);
+        
+        if (dataBuffer.size() > dataBufferSize)
+            dataBuffer.erase(dataBuffer.begin());
 
         cout << "#1 : LOAD IMAGE " << imgFullFilename << " INTO BUFFER done" << endl;
 
@@ -246,18 +245,17 @@ int experiment(string detectorType, string descriptorType, std::map<std::string,
 
         if (dataBuffer.size() > 1) // wait until at least two images have been processed
         {
-
             /* MATCH KEYPOINT DESCRIPTORS */
 
         	vector<cv::DMatch> matches;
 
-            string matcherType = "MAT_FLANN";        // MAT_BF, MAT_FLANN
-            string descriptorType = "DES_BINARY";    // DES_BINARY, DES_HOG
-            string selectorType = "SEL_KNN";         // SEL_NN, SEL_KNN
+            string matcherType = "MAT_FLANN";             // MAT_BF, MAT_FLANN
+            string matchDescriptorType = "DES_BINARY";    // DES_BINARY, DES_HOG
+            string selectorType = "SEL_KNN";              // SEL_NN, SEL_KNN
 
             matchDescriptors((dataBuffer.end() - 2)->keypoints, (dataBuffer.end() - 1)->keypoints,
                              (dataBuffer.end() - 2)->descriptors, (dataBuffer.end() - 1)->descriptors,
-                             matches, descriptorType, matcherType, selectorType);
+                             matches, matchDescriptorType, matcherType, selectorType);
 
             // store matches in current data frame
             (dataBuffer.end() - 1)->kptMatches = matches;
@@ -270,7 +268,7 @@ int experiment(string detectorType, string descriptorType, std::map<std::string,
             //// STUDENT ASSIGNMENT
             //// TASK FP.1 -> match list of 3D objects (vector<BoundingBox>) between current and previous frame (implement ->matchBoundingBoxes)
             map<int, int> bbBestMatches;
-            matchBoundingBoxes(matches, bbBestMatches, *(dataBuffer.tail_prev()), *(dataBuffer.end()-1)); // associate bounding boxes between current and previous frame using keypoint matches
+            matchBoundingBoxes(matches, bbBestMatches, *(dataBuffer.end()-2), *(dataBuffer.end()-1)); // associate bounding boxes between current and previous frame using keypoint matches
            
 			show3DObjects((dataBuffer.end()-1)->boundingBoxes, cv::Size2f(4.0, 8.5), cv::Size(800, 800), bWait);
             //// EOF STUDENT ASSIGNMENT
@@ -329,6 +327,7 @@ int experiment(string detectorType, string descriptorType, std::map<std::string,
                     r.detectorType = detectorType;
                     r.ttcCamera = ttcCamera;
                     r.ttcLidar = ttcLidar;
+                    r.imgID = frame.imgFile;
                     result[detectorName].push_back(r);
 
                     if (bWait)

@@ -214,7 +214,6 @@ void computeTTCCamera(std::vector<cv::KeyPoint> &kptsPrev, std::vector<cv::KeyPo
         } 
     }    
 
-    
     if (distRatios.size() > 0)
     {
         double dT = 1 / frameRate;
@@ -245,7 +244,6 @@ double nthSmallestDistance(std::vector<LidarPoint> &lidarPoints, double N)
 // or the largest distance among n < N x-distances if there are no N distances.
 {
 	vector<double> nSmallestDistances;
-    double curentlySmallestDistance = 1e9;
 
 	for (auto lidarPoint = lidarPoints.begin(); lidarPoint != lidarPoints.end(); ++lidarPoint)
 	{

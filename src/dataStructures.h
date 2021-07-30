@@ -37,4 +37,14 @@ struct DataFrame { // represents the available sensor information at the same ti
     std::string imgFile;
 };
 
+
+struct ExperimentResult
+{
+    std::string detectorType;
+    std::string descriptorType;
+    double ttcLidar;
+    double ttcCamera;
+    std::string imgID;
+};
+
 #endif /* dataStructures_h */

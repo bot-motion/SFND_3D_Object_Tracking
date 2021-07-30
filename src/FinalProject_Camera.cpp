@@ -54,13 +54,14 @@ int main(int argc, const char *argv[])
 
 void printResult(std::map<std::string, std::vector<ExperimentResult>> &result)
 {
+    ostringstream ss;
+    ss << std::fixed << std::setprecision(1) << "detector_type, descriptor_type, img_id, lidar_ttc, camera_ttc, num_kpts, num_kpts_matched " << std::endl;
+
 	for(auto test : result)
     {
 		auto &detectorName = test.first;
 		auto &data = test.second;
 
-		ostringstream ss;
-		ss << std::fixed << std::setprecision(1) << "detector_type, descriptor_type, img_id, lidar_ttc, camera_ttc " << std::endl;
 		for(auto &item : data)
         {
 			ss << item.detectorType << ", " << item.descriptorType << ", " << item.imgID << ", " << item.ttcLidar << ", ";

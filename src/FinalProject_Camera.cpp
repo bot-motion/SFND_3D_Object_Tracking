@@ -46,7 +46,7 @@ int main(int argc, const char *argv[])
     else
     {
 	    string detectorType = "SIFT";     //SHITOMASI, HARRIS, FAST, BRISK, ORB, AKAZE, SIFT
-	    string descriptorType = "SIFT";   // BRIEF, ORB, FREAK, AKAZE, SIFT
+	    string descriptorType = "SIFT";   // BRISK, ORB, AKAZE, SIFT
 	    std::map<std::string, std::vector<ExperimentResult>> result;
 	    experiment(detectorType, descriptorType,  result, true);
 	    printResult(result);
@@ -73,15 +73,15 @@ void printResult(std::map<std::string, std::vector<ExperimentResult>> &result)
 }
 
 
-void runSeriesOfExperiments()
+void runSeriesOfExperiments()  
 {
 	std::map<std::string, std::vector<ExperimentResult>> results;
 
-	for(auto detector:{"SHITOMASI", "HARRIS","FAST", "BRISK", "ORB", "AKAZE", "SIFT"})
+	for(auto detector:{"HARRIS", "FAST", "BRISK", "ORB", "AKAZE", "SIFT", "SHITOMASI"})
     {
-		for(auto descriptor: {"BRISK", "ORB"})   // "FREAK", "SIFT"
+		for(auto descriptor: {"BRISK", "ORB", "SIFT"})   // "SIFT", "AKAZE"
         {
-			if(string(detector).compare("SIFT") == 0 && string(descriptor).compare("ORB") == 0) continue;
+			if (string(detector).compare("SIFT") == 0 && string(descriptor).compare("ORB") == 0) continue;
 			experiment(detector, descriptor, results, false);
 		}
 	}
@@ -262,7 +262,7 @@ int experiment(string detectorType, string descriptorType, std::map<std::string,
             // store matches in current data frame
             (dataBuffer.end() - 1)->kptMatches = matches;
 
-            cout << "#7 : MATCH KEYPOINT DESCRIPTORS done" << endl;
+            cout << "#7 : MATCH KEYPOINT DESCRIPTORS done - found " << (dataBuffer.end() - 1)->kptMatches.size() << " kpt matches " << endl;
 
             
             /* TRACK 3D OBJECT BOUNDING BOXES */
@@ -278,8 +278,7 @@ int experiment(string detectorType, string descriptorType, std::map<std::string,
             // store matches in current data frame
             (dataBuffer.end()-1)->bbMatches = bbBestMatches;
 
-            cout << "#8 : TRACK 3D OBJECT BOUNDING BOXES done" << endl;
-
+            cout << "#8 : TRACK 3D OBJECT BOUNDING BOXES done - found " << bbBestMatches.size() << " matching box pairs between frames." << endl;
 
             /* COMPUTE TTC ON OBJECT IN FRONT */
 
@@ -288,6 +287,7 @@ int experiment(string detectorType, string descriptorType, std::map<std::string,
             {
                 // find bounding boxes associates with current match
                 BoundingBox *prevBB, *currBB;
+
                 for (auto it2 = (dataBuffer.end() - 1)->boundingBoxes.begin(); it2 != (dataBuffer.end() - 1)->boundingBoxes.end(); ++it2)
                 {
                     if (it1->second == it2->boxID) // check wether current match partner corresponds to this BB
@@ -296,7 +296,7 @@ int experiment(string detectorType, string descriptorType, std::map<std::string,
                     }
                 }
 
-                for (auto it2 = dataBuffer.tail_prev()->boundingBoxes.begin(); it2 != dataBuffer.tail_prev()->boundingBoxes.end(); ++it2)
+                for (auto it2 = (dataBuffer.end() - 2)->boundingBoxes.begin(); it2 != (dataBuffer.end() - 2)->boundingBoxes.end(); ++it2)
                 {
                     if (it1->first == it2->boxID) // check wether current match partner corresponds to this BB
                     {
@@ -304,7 +304,7 @@ int experiment(string detectorType, string descriptorType, std::map<std::string,
                     }
                 }
 
-                // compute TTC for current match
+                 // compute TTC for current match
                 if( currBB->lidarPoints.size()>0 && prevBB->lidarPoints.size()>0 ) // only compute TTC if we have Lidar points
                 {
                     //// STUDENT ASSIGNMENT
@@ -317,8 +317,8 @@ int experiment(string detectorType, string descriptorType, std::map<std::string,
                     //// TASK FP.3 -> assign enclosed keypoint matches to bounding box (implement -> clusterKptMatchesWithROI)
                     //// TASK FP.4 -> compute time-to-collision based on camera (implement -> computeTTCCamera)
                     double ttcCamera;
-                    clusterKptMatchesWithROI(*currBB, dataBuffer.tail_prev()->keypoints, (dataBuffer.end() - 1)->keypoints, (dataBuffer.end() - 1)->kptMatches);
-                    computeTTCCamera(dataBuffer.tail_prev()->keypoints, (dataBuffer.end() - 1)->keypoints, currBB->kptMatches, sensorFrameRate, ttcCamera);
+                    clusterKptMatchesWithROI(*currBB, (dataBuffer.end() - 2)->keypoints, (dataBuffer.end() - 1)->keypoints, (dataBuffer.end() - 1)->kptMatches);
+                    computeTTCCamera((dataBuffer.end() - 2)->keypoints, (dataBuffer.end() - 1)->keypoints, currBB->kptMatches, sensorFrameRate, ttcCamera);
                     //// EOF STUDENT ASSIGNMENT
 
                     cout << "TTC Lidar :" << ttcLidar << ", TTC Camera : " << ttcCamera << endl;
@@ -349,6 +349,10 @@ int experiment(string detectorType, string descriptorType, std::map<std::string,
                     }
 
                 } // eof TTC computation
+                else
+                {
+                    cout << "Lidar information insufficient - curr box = " << currBB->lidarPoints.size() << " pts, " << "prev box = " << prevBB->lidarPoints.size() << " pts. " << endl;
+                }
             } // eof loop over all BB matches            
 
         }

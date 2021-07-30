@@ -158,14 +158,17 @@ void clusterKptMatchesWithROI(BoundingBox &boundingBox, std::vector<cv::KeyPoint
         }
     }
 
-    double distMean = distance/kptsROI.size();
-    double threshold = distMean * 0.7;
-
-    for (auto kpt: kptsROI)
+    if (kptsROI.size() > 0)
     {
-        if(kpt.distance < threshold)
+        double distMean = distance/kptsROI.size();
+        double threshold = distMean * 0.7;
+
+        for (auto kpt: kptsROI)
         {
-            boundingBox.kptMatches.push_back(kpt);
+            if(kpt.distance < threshold)
+            {
+                boundingBox.kptMatches.push_back(kpt);
+            }
         }
     }
 }
@@ -176,6 +179,12 @@ void computeTTCCamera(std::vector<cv::KeyPoint> &kptsPrev, std::vector<cv::KeyPo
                       std::vector<cv::DMatch> kptMatches, double frameRate, double &TTC, cv::Mat *visImg)
 {
     double minDist = 100.0; // min. required distance
+
+    if (kptMatches.size() < 2)
+    {
+        TTC = NAN;
+        return;
+    }
 
     // We take two frames (current and previous) and two pairs of matched keypoints (firstMatch and secondMatch).
     // Compute distance ratios between all matched keypoints.
@@ -236,35 +245,24 @@ double nthSmallestDistance(std::vector<LidarPoint> &lidarPoints, double N)
 // or the largest distance among n < N x-distances if there are no N distances.
 {
 	vector<double> nSmallestDistances;
-    double smallestDistanceLimit = 1e9;
+    double curentlySmallestDistance = 1e9;
 
 	for (auto lidarPoint = lidarPoints.begin(); lidarPoint != lidarPoints.end(); ++lidarPoint)
 	{
-        bool foundOneOfNSmallestDistances = smallestDistanceLimit > lidarPoint->x;
+        bool foundOneOfNSmallestDistances;
+        if (nSmallestDistances.size() == 0)
+            foundOneOfNSmallestDistances = true;
+        else
+            foundOneOfNSmallestDistances = lidarPoint->x < nSmallestDistances.back();
+
         if (foundOneOfNSmallestDistances)
         {
-            if (nSmallestDistances.size() <= N)
-            {
-                nSmallestDistances.push_back(lidarPoint->x);
-                std::sort(nSmallestDistances.begin(), nSmallestDistances.end());
-                smallestDistanceLimit = nSmallestDistances.back();
-            }
-            else
-            {
-                for (auto smallDistance = nSmallestDistances.begin(); smallDistance != nSmallestDistances.end(); ++smallDistance)
-                {
-                    if (*smallDistance > lidarPoint->x)
-                    {
-                        nSmallestDistances.insert(smallDistance, lidarPoint->x);
-                        nSmallestDistances.pop_back();
-                        smallestDistanceLimit = nSmallestDistances.back();
-                        break;
-                    }
-                }
-            }
+            nSmallestDistances.push_back(lidarPoint->x);
+            std::sort(nSmallestDistances.begin(), nSmallestDistances.end());
+            if (nSmallestDistances.size() > N)
+                nSmallestDistances.pop_back();
         }
-
-	}
+    }
 
     return nSmallestDistances.back();
 }
@@ -280,8 +278,11 @@ void computeTTCLidar(std::vector<LidarPoint> &lidarPointsPrev,
     double minXPrev = nthSmallestDistance(lidarPointsPrev, N);
     double minXCurr = nthSmallestDistance(lidarPointsCurr, N);    
 
-	TTC = minXCurr * dT / (minXPrev - minXCurr);
-}
+    if ((minXPrev == 0 && minXCurr == 0) || (minXPrev == minXCurr))
+        TTC = NAN;
+    else    
+	    TTC = minXCurr * dT / (minXPrev - minXCurr);
+} 
 
 
 void matchBoundingBoxes(std::vector<cv::DMatch> &matches, std::map<int, int> &bbBestMatches, DataFrame &prevFrame, DataFrame &currFrame)

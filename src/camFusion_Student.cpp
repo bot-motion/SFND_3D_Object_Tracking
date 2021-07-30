@@ -217,7 +217,7 @@ void computeTTCCamera(std::vector<cv::KeyPoint> &kptsPrev, std::vector<cv::KeyPo
     if (distRatios.size() > 0)
     {
         double dT = 1 / frameRate;
-        double medianDistRatio = 0;
+        double medianDistRatio = 0.0f;
         
         std::sort(distRatios.begin(), distRatios.end());
         long medianIndex = distRatios.size()/2;

@@ -60,10 +60,10 @@ void printResult(std::map<std::string, std::vector<ExperimentResult>> &result)
 		auto &data = test.second;
 
 		ostringstream ss;
-		ss << std::fixed << std::setprecision(1) << detectorName << std::endl << "img_id    |   lidar   | camera " << std::endl;
+		ss << std::fixed << std::setprecision(1) << "detector_type, descriptor_type, img_id, lidar_ttc, camera_ttc " << std::endl;
 		for(auto &item : data)
         {
-			ss << item.imgID << ", " << item.ttcLidar << ", " << item.ttcCamera << ", " << std::endl;
+			ss << item.detectorType << ", " << item.descriptorType << ", " << item.imgID << ", " << item.ttcLidar << ", " << item.ttcCamera << ", " << std::endl;
 		}
 		std::cout << ss.str() << std::endl;
 	}
@@ -327,6 +327,8 @@ int experiment(string detectorType, string descriptorType, std::map<std::string,
                     r.detectorType = detectorType;
                     r.ttcCamera = ttcCamera;
                     r.ttcLidar = ttcLidar;
+                    r.numOfKeypointsDetected = (dataBuffer.end() - 1)->keypoints.size();
+                    r.numOfKeypointsMatched = (dataBuffer.end() - 1)->kptMatches.size();
                     r.imgID = frame.imgFile;
                     result[detectorName].push_back(r);
 

@@ -45,6 +45,8 @@ struct ExperimentResult
     double ttcLidar;
     double ttcCamera;
     std::string imgID;
+    int numOfKeypointsDetected;
+    int numOfKeypointsMatched;
 };
 
 #endif /* dataStructures_h */

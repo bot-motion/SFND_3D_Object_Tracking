@@ -33,11 +33,15 @@ The effect can persist even when vehicles start moving again, as can be seen in 
 <img src="images/SIFT_SIFT_Lidar_off/SIFT_SIFT_Lidar_off/3D Objects_screenshot_frame_7_8.png" width="400" height="200" />
 <img src="images/SIFT_SIFT_Lidar_off/SIFT_SIFT_Lidar_off/Final Results_TTC_screenshot_frame_7_8.png" width="400" height="200" />
 
-One frame where the lidar measurement is plausible is frame 11:
+Frames where the lidar measurement is plausible are frames 11 and 12:
 
-<img src="images/SIFT_SIFT_Lidar_off/SIFT_SIFT_Lidar_off/Object classification_screenshot_frame_10_11.png" width="400" height="200" />
-<img src="images/SIFT_SIFT_Lidar_off/SIFT_SIFT_Lidar_off/3D Objects_screenshot_frame_10_11.png" width="400" height="200" />
-<img src="images/SIFT_SIFT_Lidar_off/SIFT_SIFT_Lidar_off/Final Results_TTC_screenshot_frame_10_11.png" width="400" height="200" />
+<img src="images/SIFT_SIFT_Lidar_off/SIFT_SIFT_Lidar_off/Object classification_screenshot_frame_10_11_no_delta.png" width="400" height="200" />
+<img src="images/SIFT_SIFT_Lidar_off/SIFT_SIFT_Lidar_off/3D Objects_screenshot_frame_10_11_no_delta.png" width="400" height="200" />
+<img src="images/SIFT_SIFT_Lidar_off/SIFT_SIFT_Lidar_off/Final Results_TTC_screenshot_frame_10_11_no_delta.png" width="400" height="200" />
+
+<img src="images/SIFT_SIFT_Lidar_off/SIFT_SIFT_Lidar_off/Object classification_screenshot_frame_11_12_no_delta.png" width="400" height="200" />
+<img src="images/SIFT_SIFT_Lidar_off/SIFT_SIFT_Lidar_off/3D Objects_screenshot_frame_11_12_no_delta.png" width="400" height="200" />
+<img src="images/SIFT_SIFT_Lidar_off/SIFT_SIFT_Lidar_off/Final Results_TTC_screenshot_frame_11_12_no_delta.png" width="400" height="200" />
 
 ### Other potential reasons
 

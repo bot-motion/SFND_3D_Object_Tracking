@@ -22,22 +22,22 @@ The following pictures were taken running on SIFT/SIFT for camera-based TTC.
 
 Small fluctuations in lidar data can lead to wrong results when relative speed between the ego vehicle and the front vehicle is small. On the graph above we see a wrong estimate at frame 7.
 
-<img src="images/SIFT_SIFT_Lidar_off/SIFT_SIFT_Lidar_off/Object classification_screenshot_frame_6_7.png" width="300" height="100" />
-<img src="images/SIFT_SIFT_Lidar_off/SIFT_SIFT_Lidar_off/3D Objects_screenshot_frame_6_7.png" width="300" height="100" />
-<img src="images/SIFT_SIFT_Lidar_off/SIFT_SIFT_Lidar_off/Final Results_TTC_screenshot_frame_6_7.png" width="300" height="100" />
+<img src="images/SIFT_SIFT_Lidar_off/SIFT_SIFT_Lidar_off/Object classification_screenshot_frame_6_7.png" width="400" height="200" />
+<img src="images/SIFT_SIFT_Lidar_off/SIFT_SIFT_Lidar_off/3D Objects_screenshot_frame_6_7.png" width="400" height="200" />
+<img src="images/SIFT_SIFT_Lidar_off/SIFT_SIFT_Lidar_off/Final Results_TTC_screenshot_frame_6_7.png" width="400" height="200" />
 
 Estimated distance delta (frame 6 and 7) is 2cm, but the real distance delta is about 6cm. A 4cm distance error leads to a large TTC error.
 The effect can persist even when vehicles start moving again, as can be seen in frame 8:
 
-<img src="images/SIFT_SIFT_Lidar_off/SIFT_SIFT_Lidar_off/Object classification_screenshot_frame_7_8.png" width="300" height="100" />
-<img src="images/SIFT_SIFT_Lidar_off/SIFT_SIFT_Lidar_off/3D Objects_screenshot_frame_7_8.png" width="300" height="100" />
-<img src="images/SIFT_SIFT_Lidar_off/SIFT_SIFT_Lidar_off/Final Results_TTC_screenshot_frame_7_8.png" width="300" height="100" />
+<img src="images/SIFT_SIFT_Lidar_off/SIFT_SIFT_Lidar_off/Object classification_screenshot_frame_7_8.png" width="400" height="200" />
+<img src="images/SIFT_SIFT_Lidar_off/SIFT_SIFT_Lidar_off/3D Objects_screenshot_frame_7_8.png" width="400" height="200" />
+<img src="images/SIFT_SIFT_Lidar_off/SIFT_SIFT_Lidar_off/Final Results_TTC_screenshot_frame_7_8.png" width="400" height="200" />
 
-One frame where the lidar measurement is plausible is frame 1:
+One frame where the lidar measurement is plausible is frame 11:
 
-<img src="images/SIFT_SIFT_Lidar_off/SIFT_SIFT_Lidar_off/Object classification_screenshot_frame_1_2.png" width="300" height="100" />
-<img src="images/SIFT_SIFT_Lidar_off/SIFT_SIFT_Lidar_off/3D Objects_screenshot_frame_1_2.png" width="300" height="100" />
-<img src="images/SIFT_SIFT_Lidar_off/SIFT_SIFT_Lidar_off/Final Results_TTC_screenshot_frame_1_2.png" width="300" height="100" />
+<img src="images/SIFT_SIFT_Lidar_off/SIFT_SIFT_Lidar_off/Object classification_screenshot_frame_10_11.png" width="400" height="200" />
+<img src="images/SIFT_SIFT_Lidar_off/SIFT_SIFT_Lidar_off/3D Objects_screenshot_frame_10_11.png" width="400" height="200" />
+<img src="images/SIFT_SIFT_Lidar_off/SIFT_SIFT_Lidar_off/Final Results_TTC_screenshot_frame_10_11.png" width="400" height="200" />
 
 ### Other potential reasons
 

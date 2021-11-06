@@ -1,14 +1,69 @@
 # SFND 3D Object Tracking
 
-Welcome to the final project of the camera course. By completing all the lessons, you now have a solid understanding of keypoint detectors, descriptors, and methods to match them between successive images. Also, you know how to detect objects in an image using the YOLO deep-learning framework. And finally, you know how to associate regions in a camera image with Lidar points in 3D space. Let's take a look at our program schematic to see what we already have accomplished and what's still missing.
+This is part of the Udacity Sensor Fusion Nanodegree.
 
 <img src="images/course_code_structure.png" width="779" height="414" />
 
-In this final project, you will implement the missing parts in the schematic. To do this, you will complete four major tasks: 
-1. First, you will develop a way to match 3D objects over time by using keypoint correspondences. 
-2. Second, you will compute the TTC based on Lidar measurements. 
-3. You will then proceed to do the same using the camera, which requires to first associate keypoint matches to regions of interest and then to compute the TTC based on those matches. 
-4. And lastly, you will conduct various tests with the framework. Your goal is to identify the most suitable detector/descriptor combination for TTC estimation and also to search for problems that can lead to faulty measurements by the camera or Lidar sensor. In the last course of this Nanodegree, you will learn about the Kalman filter, which is a great way to combine the two independent TTC measurements into an improved version which is much more reliable than a single sensor alone can be. But before we think about such things, let us focus on your final project in the camera course. 
+In this project, I implemented the missing parts in the schematic:
+
+1. Developed a way to match 3D objects over time by using keypoint correspondences. 
+2. Computed the TTC based on Lidar measurements. 
+3. Computed the TTC based on two camera frames, which required to first associate keypoint matches to regions of interest and then to compute the TTC based on those matches.
+
+The following are reports on the various tests conducted with the framework. 
+
+## Instances where the Lidar-based TTC estimate is off
+
+### Ghost points
+
+Once you have found those, describe your observations and provide a sound argumentation why you think this happened.
+
+The task is complete once several examples (2-3) have been identified and described in detail. The assertion that the TTC is off should be based on manually estimating the distance to the rear of the preceding vehicle from a top view perspective of the Lidar points.
+
+## Finding suitable detector/descriptor combos for camera-based TTC estimation
+
+Run the program with the command line argument `-series` and pipe the `stdout` to a text file to get data on all the different detector / descriptor combinations. We observe the following:
+
+* some detectors/descriptors extract far fewer keypoints on the image set than others (e.g. `HARRIS`/`SIFT` or `ORB`/`BRISK` are pretty unsuccessful)
+* the ratio of matched to unmatched keypoints varies wildy  
+
+Find out which methods perform best
+
+
+ and looking at the differences in TTC estimation.  and also include 
+ 
+### Examples where camera-based TTC estimation is off
+
+Whether and how strongly camera-based TTC might be off in its estimation depends on the descriptor and detector type. One combination that performs
+particularly poorly is AKAZE/ORB. Since we have no ground truth as to what the actual distance or time-to-collision in any given frame is, we have
+to rely on comparisons across lidar and other camera-based combos. 
+
+The first frame where we see an outlier in camera-based TTC is frame 11.
+
+We compare this to frame 12, where the cam-based TTC is more in sync with the other estimates again.
+
+
+
+
+The second example is frame 15: 
+
+<img src="images/AKAZE_ORB_Camera_off/AKAZE_ORB_Camera_off/Object classification_screenshot_frame_15.png" width="300" height="100" />
+<img src="images/AKAZE_ORB_Camera_off/AKAZE_ORB_Camera_off/3D Objects_screenshot_frame_15.png" width="300" height="100" />
+<img src="images/AKAZE_ORB_Camera_off/AKAZE_ORB_Camera_off/Final Results_TTC_screenshot_frame_15.png" width="300" height="100" />
+
+which we again compare to frame 16, which is more plausible again.
+
+<img src="images/AKAZE_ORB_Camera_off/AKAZE_ORB_Camera_off/Object classification_screenshot_frame_16.png" width="300" height="100" />
+<img src="images/AKAZE_ORB_Camera_off/AKAZE_ORB_Camera_off/3D Objects_screenshot_frame_16.png" width="300" height="100" />
+<img src="images/AKAZE_ORB_Camera_off/AKAZE_ORB_Camera_off/Final Results_TTC_screenshot_frame_16.png" width="300" height="100" />
+
+
+
+Describe your observations again and also look into potential reasons.
+
+
+
+
 
 ## Dependencies for Running Locally
 * cmake >= 2.8

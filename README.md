@@ -14,55 +14,64 @@ The following are reports on the various tests conducted with the framework.
 
 ## Instances where the Lidar-based TTC estimate is off
 
-### Ghost points
+The following pictures were taken running on SIFT/SIFT for camera-based TTC.
 
-Once you have found those, describe your observations and provide a sound argumentation why you think this happened.
+<img src="images/image_id_lidar_versus_camera.png"/>
 
-The task is complete once several examples (2-3) have been identified and described in detail. The assertion that the TTC is off should be based on manually estimating the distance to the rear of the preceding vehicle from a top view perspective of the Lidar points.
+### Erroneous lidar at small speeds
+
+Small fluctuations in lidar data can lead to wrong results when relative speed between the ego vehicle and the front vehicle is small. On the graph above we see a wrong estimate at frame 7.
+
+<img src="images/SIFT_SIFT_Lidar_off/SIFT_SIFT_Lidar_off/Object classification_screenshot_frame_6_7.png" width="300" height="100" />
+<img src="images/SIFT_SIFT_Lidar_off/SIFT_SIFT_Lidar_off/3D Objects_screenshot_frame_6_7.png" width="300" height="100" />
+<img src="images/SIFT_SIFT_Lidar_off/SIFT_SIFT_Lidar_off/Final Results_TTC_screenshot_frame_6_7.png" width="300" height="100" />
+
+Estimated distance delta (frame 6 and 7) is 2cm, but the real distance delta is about 6cm. A 4cm distance error leads to a large TTC error.
+The effect can persist even when vehicles start moving again, as can be seen in frame 8:
+
+<img src="images/SIFT_SIFT_Lidar_off/SIFT_SIFT_Lidar_off/Object classification_screenshot_frame_7_8.png" width="300" height="100" />
+<img src="images/SIFT_SIFT_Lidar_off/SIFT_SIFT_Lidar_off/3D Objects_screenshot_frame_7_8.png" width="300" height="100" />
+<img src="images/SIFT_SIFT_Lidar_off/SIFT_SIFT_Lidar_off/Final Results_TTC_screenshot_frame_7_8.png" width="300" height="100" />
+
+One frame where the lidar measurement is plausible is frame 1:
+
+<img src="images/SIFT_SIFT_Lidar_off/SIFT_SIFT_Lidar_off/Object classification_screenshot_frame_1_2.png" width="300" height="100" />
+<img src="images/SIFT_SIFT_Lidar_off/SIFT_SIFT_Lidar_off/3D Objects_screenshot_frame_1_2.png" width="300" height="100" />
+<img src="images/SIFT_SIFT_Lidar_off/SIFT_SIFT_Lidar_off/Final Results_TTC_screenshot_frame_1_2.png" width="300" height="100" />
+
+### Other potential reasons
+
+The reflection of the lidar in reflective surfaces (like the metallic surface of the front car) can create incorrect values. 
+These errors are more significant if the front car is closer.
 
 ## Finding suitable detector/descriptor combos for camera-based TTC estimation
+
+### Find out which methods perform best
 
 Run the program with the command line argument `-series` and pipe the `stdout` to a text file to get data on all the different detector / descriptor combinations. We observe the following:
 
 * some detectors/descriptors extract far fewer keypoints on the image set than others (e.g. `HARRIS`/`SIFT` or `ORB`/`BRISK` are pretty unsuccessful)
 * the ratio of matched to unmatched keypoints varies wildy  
 
-Find out which methods perform best
+Assuming that the lidar yields good estimates except for obvious outliers as discussed in the previous section, and that a small difference between
+lidar and camera-based TTC estimate means that both come close to a ground truth, we can use the standard deviation of the difference between lidar 
+and camera as a quality measure. 
 
+According to this measure, and including only image frames that can be processed across all detector/descriptor combos, 
+SIFT is often better than other detector types. The best combo however on the sample selected is ORB/ORB, closely followed by ORB/SIFT. A small
+selection of combos is shown in the following graph, which plots the camera-based TTC estimate versus the frame id.
 
- and looking at the differences in TTC estimation.  and also include 
- 
+<img src="images/image_id_versus_descr_detector.png"/>
+
 ### Examples where camera-based TTC estimation is off
 
 Whether and how strongly camera-based TTC might be off in its estimation depends on the descriptor and detector type. One combination that performs
-particularly poorly is AKAZE/ORB. Since we have no ground truth as to what the actual distance or time-to-collision in any given frame is, we have
-to rely on comparisons across lidar and other camera-based combos. 
+particularly poorly is AKAZE/ORB. This combo
 
-The first frame where we see an outlier in camera-based TTC is frame 11.
+* has particularly low numbers of keypoints
+* has a particularly bad match ratio of keypoints across frames
 
-We compare this to frame 12, where the cam-based TTC is more in sync with the other estimates again.
-
-
-
-
-The second example is frame 15: 
-
-<img src="images/AKAZE_ORB_Camera_off/AKAZE_ORB_Camera_off/Object classification_screenshot_frame_15.png" width="300" height="100" />
-<img src="images/AKAZE_ORB_Camera_off/AKAZE_ORB_Camera_off/3D Objects_screenshot_frame_15.png" width="300" height="100" />
-<img src="images/AKAZE_ORB_Camera_off/AKAZE_ORB_Camera_off/Final Results_TTC_screenshot_frame_15.png" width="300" height="100" />
-
-which we again compare to frame 16, which is more plausible again.
-
-<img src="images/AKAZE_ORB_Camera_off/AKAZE_ORB_Camera_off/Object classification_screenshot_frame_16.png" width="300" height="100" />
-<img src="images/AKAZE_ORB_Camera_off/AKAZE_ORB_Camera_off/3D Objects_screenshot_frame_16.png" width="300" height="100" />
-<img src="images/AKAZE_ORB_Camera_off/AKAZE_ORB_Camera_off/Final Results_TTC_screenshot_frame_16.png" width="300" height="100" />
-
-
-
-Describe your observations again and also look into potential reasons.
-
-
-
+Examples where it is especially off include frame no 11 and 15 (see the results Excel in this repo).
 
 
 ## Dependencies for Running Locally

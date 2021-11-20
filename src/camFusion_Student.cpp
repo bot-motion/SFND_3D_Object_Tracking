@@ -142,36 +142,69 @@ void show3DObjects(std::vector<BoundingBox> &boundingBoxes, cv::Size2f worldSize
 }
 
 
+struct ExtendedDMatch
+{
+    cv::DMatch match;
+    double euclideanDistance;
+};
+
+bool Compare(ExtendedDMatch a, ExtendedDMatch b) 
+{
+    return a.euclideanDistance < b.euclideanDistance;
+}
+
+
 // Associate a given bounding box with the keypoints it contains
 void clusterKptMatchesWithROI(BoundingBox &boundingBox, std::vector<cv::KeyPoint> &kptsPrev, std::vector<cv::KeyPoint> &kptsCurr, std::vector<cv::DMatch> &kptMatches)
 {
     std::vector<cv::DMatch> kptsROI;
-    double distance = 0.0;
+    std::vector<ExtendedDMatch> matchesWithDistances;
 
     for (auto match: kptMatches)
     {
-        bool keypointInBoundingBox = boundingBox.roi.contains(kptsCurr[match.trainIdx].pt);
+        bool keypointInBoundingBox = boundingBox.roi.contains(kptsCurr[match.trainIdx].pt) &&
+                                     boundingBox.roi.contains(kptsCurr[match.queryIdx].pt);
+
         if(keypointInBoundingBox)
         {
-            kptsROI.push_back(match);
-            distance += match.distance; 
+            cv::KeyPoint kpInnerCurr = kptsCurr.at(match.trainIdx);
+            cv::KeyPoint kpInnerPrev = kptsPrev.at(match.queryIdx);
+            float eucDistBetwKpts = std::sqrt(std::pow((kpInnerCurr.pt.x - kpInnerPrev.pt.x),2)+std::pow((kpInnerCurr.pt.y - kpInnerPrev.pt.y),2));
+
+            ExtendedDMatch m;
+            m.euclideanDistance = eucDistBetwKpts;
+            m.match = *match;
+            
+            matchesWithDistances.push_back(eucDistBetwKpts); 
         }
     }
 
-    if (kptsROI.size() > 0)
+    std::sort(matchesWithDistances.begin(),matchesWithDistances.end(),Compare);
+
+    medianIndex = floor(matchesWithDistances.size()/2);
+    q1Index = floor(matchesWithDistances.size()/4);
+    q3Index = floor(matchesWithDistances.size()/4 * 3);
+
+    double medianDistance = matchesWithDistances[medianIndex].euclideanDistance;
+    double q1Distance = matchesWithDistances[q1Index].euclideanDistance;
+    double q3Distance = matchesWithDistances[q3Index].euclideanDistance;
+
+    double iqrDistance = q3Distance - q1Distance;
+
+    for(auto md = matchesWithDistances.begin(); md !=matchesWithDistances.end(); md++)
     {
-        double distMean = distance/kptsROI.size();
-        double threshold = distMean * 0.7;
-
-        for (auto kpt: kptsROI)
+        bool isOutlier = md->euclideanDistance < q1Distance-iqrDistance && md->euclideanDistance > q3Distance+iqrDistance;
+        if(!isOutlier)
         {
-            if(kpt.distance < threshold)
-            {
-                boundingBox.kptMatches.push_back(kpt);
-            }
+            kptsROI.push_back(toSortVec_itr->DMatch);
         }
     }
+
+    boundingBox.kptMatches = kptsROI;
+
 }
+
+
 
 
 // Compute time-to-collision (TTC) based on keypoint correspondences in successive images

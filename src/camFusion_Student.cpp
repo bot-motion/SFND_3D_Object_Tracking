@@ -169,11 +169,12 @@ void clusterKptMatchesWithROI(BoundingBox &boundingBox, std::vector<cv::KeyPoint
         {
             cv::KeyPoint kpInnerCurr = kptsCurr.at(match.trainIdx);
             cv::KeyPoint kpInnerPrev = kptsPrev.at(match.queryIdx);
-            float eucDistBetwKpts = std::sqrt(std::pow((kpInnerCurr.pt.x - kpInnerPrev.pt.x),2)+std::pow((kpInnerCurr.pt.y - kpInnerPrev.pt.y),2));
+            float eucDistBetwKpts = std::sqrt(std::pow((kpInnerCurr.pt.x - kpInnerPrev.pt.x),2)
+                                             +std::pow((kpInnerCurr.pt.y - kpInnerPrev.pt.y),2));
 
             struct ExtendedDMatch m;
             m.euclideanDistance = eucDistBetwKpts;
-            m.match = *match;
+            m.match = match;
             
             matchesWithDistances.push_back(m); 
         }

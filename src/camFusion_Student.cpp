@@ -175,7 +175,7 @@ void clusterKptMatchesWithROI(BoundingBox &boundingBox, std::vector<cv::KeyPoint
             m.euclideanDistance = eucDistBetwKpts;
             m.match = *match;
             
-            matchesWithDistances.push_back(eucDistBetwKpts); 
+            matchesWithDistances.push_back(m); 
         }
     }
 

@@ -40,7 +40,12 @@ int main(int argc, const char *argv[])
         }
         if (strcmp(argv[1], "-single") == 0)
         {
-	        experiment(detector, descriptor, result, false, 70);
+            string detector = "SIFT";     //SHITOMASI, HARRIS, FAST, BRISK, ORB, AKAZE, SIFT
+	        string descriptor = "SIFT";   // BRISK, ORB, AKAZE, SIFT
+	        std::map<std::string, std::vector<ExperimentResult>> result;
+	        
+            experiment(detector, descriptor, result, false, 70);
+            printResult(result);
         }
     }
     else

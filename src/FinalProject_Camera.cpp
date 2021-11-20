@@ -24,7 +24,7 @@
 using namespace std;
 
 
-int experiment(string detectorType, string descriptorType, std::map<std::string, std::vector<ExperimentResult>> &result, bool bWait);
+int experiment(string detectorType, string descriptorType, std::map<std::string, std::vector<ExperimentResult>> &result, bool bWait, int upToImgNo);
 void printResult(std::map<std::string, std::vector<ExperimentResult>> &result);
 void runSeriesOfExperiments();
 

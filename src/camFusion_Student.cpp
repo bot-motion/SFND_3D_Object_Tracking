@@ -158,7 +158,7 @@ bool Compare(ExtendedDMatch a, ExtendedDMatch b)
 void clusterKptMatchesWithROI(BoundingBox &boundingBox, std::vector<cv::KeyPoint> &kptsPrev, std::vector<cv::KeyPoint> &kptsCurr, std::vector<cv::DMatch> &kptMatches)
 {
     std::vector<cv::DMatch> kptsROI;
-    std::vector<ExtendedDMatch> matchesWithDistances;
+    std::vector<struct ExtendedDMatch> matchesWithDistances;
 
     for (auto match: kptMatches)
     {
@@ -171,7 +171,7 @@ void clusterKptMatchesWithROI(BoundingBox &boundingBox, std::vector<cv::KeyPoint
             cv::KeyPoint kpInnerPrev = kptsPrev.at(match.queryIdx);
             float eucDistBetwKpts = std::sqrt(std::pow((kpInnerCurr.pt.x - kpInnerPrev.pt.x),2)+std::pow((kpInnerCurr.pt.y - kpInnerPrev.pt.y),2));
 
-            ExtendedDMatch m;
+            struct ExtendedDMatch m;
             m.euclideanDistance = eucDistBetwKpts;
             m.match = *match;
             
@@ -181,9 +181,9 @@ void clusterKptMatchesWithROI(BoundingBox &boundingBox, std::vector<cv::KeyPoint
 
     std::sort(matchesWithDistances.begin(),matchesWithDistances.end(),Compare);
 
-    medianIndex = floor(matchesWithDistances.size()/2);
-    q1Index = floor(matchesWithDistances.size()/4);
-    q3Index = floor(matchesWithDistances.size()/4 * 3);
+    int medianIndex = floor(matchesWithDistances.size()/2);
+    int q1Index = floor(matchesWithDistances.size()/4);
+    int q3Index = floor(matchesWithDistances.size()/4 * 3);
 
     double medianDistance = matchesWithDistances[medianIndex].euclideanDistance;
     double q1Distance = matchesWithDistances[q1Index].euclideanDistance;

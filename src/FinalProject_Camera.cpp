@@ -38,6 +38,10 @@ int main(int argc, const char *argv[])
         {
 	        runSeriesOfExperiments();
         }
+        if (strcmp(argv[1], "-single") == 0)
+        {
+	        experiment(detector, descriptor, result, false, 70);
+        }
     }
     else
     {
@@ -45,7 +49,7 @@ int main(int argc, const char *argv[])
 	    string descriptor = "SIFT";   // BRISK, ORB, AKAZE, SIFT
 	    std::map<std::string, std::vector<ExperimentResult>> result;
         
-	    experiment(detector, descriptor, result, true);
+	    experiment(detector, descriptor, result, true, 30);
 	    printResult(result);
     }
 }
@@ -81,7 +85,7 @@ void runSeriesOfExperiments()
 		for(auto descriptor: {"BRISK", "ORB", "SIFT"})   // "SIFT", "AKAZE"
         {
 			if (string(detector).compare("SIFT") == 0 && string(descriptor).compare("ORB") == 0) continue;
-			experiment(detector, descriptor, results, false);
+			experiment(detector, descriptor, results, false, 25);
 		}
 	}
 
@@ -90,7 +94,7 @@ void runSeriesOfExperiments()
 
 
 
-int experiment(string detectorType, string descriptorType, std::map<std::string, std::vector<ExperimentResult>> &result, bool bWait)
+int experiment(string detectorType, string descriptorType, std::map<std::string, std::vector<ExperimentResult>> &result, bool bWait, int upToImgNo)
 {
     /* INIT VARIABLES AND DATA STRUCTURES */
 
@@ -102,7 +106,7 @@ int experiment(string detectorType, string descriptorType, std::map<std::string,
     string imgPrefix = "KITTI/2011_09_26/image_02/data/000000"; // left camera, color
     string imgFileType = ".png";
     int imgStartIndex = 0; // first file index to load (assumes Lidar and camera names have identical naming convention)
-    int imgEndIndex = 70;   // last file index to load [there are 78 images total]
+    int imgEndIndex = upToImgNo;   // last file index to load [there are 78 images total]
     int imgStepWidth = 1; 
     int imgFillWidth = 4;  // no. of digits which make up the file index (e.g. img-0001.png)
 

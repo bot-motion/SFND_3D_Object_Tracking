@@ -10,11 +10,29 @@ In this project, I implemented the missing parts in the schematic:
 2. Computed the TTC based on Lidar measurements. 
 3. Computed the TTC based on two camera frames, which required to first associate keypoint matches to regions of interest and then to compute the TTC based on those matches.
 
-The following are reports on the various tests conducted with the framework. 
+## Code documentation
+
+### Match 3D Objects
+
+The matching of 3D objects is implemented in `matchBoundingBoxes`. It takes one match at a time and determines which boxes each point of the match belongs to.
+Then we count the number of correspondences between boxes across frames. Finally we select pairs of boxes that have the highest number of keypoint matches between them.
+
+### Compute Lidar-based TTC
+
+Lidar-based TTC is implemented in `computeTTCLidar`. An important helper function is `nthSmallestDistance` which takes a set of lidar points and returns the Nth smallest distance in x-direction of a collection of lidar points, or the largest distance among n < N x-distances if there are no N distances. This serves to
+remove outliers in the distance data. Experiments yield N = 7 as a suitable choice. Then the formula for a constant velocity model is used to estimate the TTC.
+
+### Associate Keypoint Correspondences with Bounding Boxes
+
+This is implemented in `clusterKptMatchesWithROI`. For each matched pair of keypoints we check if the previous keypoint and current keypoint are within the same bounding box. We compute the euclidean distance between them and collect pairs of matches and distances into a vector. Then we filter out outliers based on the distance between the two keypoints using IQR as a means to identify the outliers.
+
+### Compute Camera-based TTC
+
+In `computeTTCCamera` we first compute the distance ratios between all matched keypoints. Then we use the median of the distance ratios as an input to the formula to compute the TTC.
 
 ## Instances where the Lidar-based TTC estimate is off
 
-The following pictures were taken running on SIFT/SIFT for camera-based TTC.
+The following are reports on the various tests conducted with the framework. The following pictures were taken running on SIFT/SIFT for camera-based TTC.
 
 <img src="images/image_id_lidar_versus_camera.png"/>
 

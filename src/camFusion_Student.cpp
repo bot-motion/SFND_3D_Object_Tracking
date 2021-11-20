@@ -196,7 +196,7 @@ void clusterKptMatchesWithROI(BoundingBox &boundingBox, std::vector<cv::KeyPoint
         bool isOutlier = md->euclideanDistance < q1Distance-iqrDistance && md->euclideanDistance > q3Distance+iqrDistance;
         if(!isOutlier)
         {
-            kptsROI.push_back(toSortVec_itr->DMatch);
+            kptsROI.push_back(md->DMatch);
         }
     }
 

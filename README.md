@@ -48,6 +48,10 @@ Frames where the lidar measurement is plausible are frames 11 and 12:
 The reflection of the lidar in reflective surfaces (like the metallic surface of the front car) can create incorrect values. 
 These errors are more significant if the front car is closer.
 
+The cause of error is very likely the varying relative speed, since xmin reduces almost linearly as the KITTI vehicle approaches the other car.
+
+Lidar based TTC could be off, the main root cause could be that the closest point obtained may be a ghost point. In another word, it may not be an actual point in the preceding car. Below are a few examples,
+
 ## Finding suitable detector/descriptor combos for camera-based TTC estimation
 
 ### Find out which methods perform best
@@ -75,7 +79,7 @@ particularly poorly is AKAZE/ORB. This combo
 * has particularly low numbers of keypoints
 * has a particularly bad match ratio of keypoints across frames
 
-Examples where it is especially off include frame no 11 and 15 (see the results Excel in this repo).
+Examples where it is especially off include frame no 11 and 15 (see the results Excel in `dat/output` in this repo).
 
 
 ## Dependencies for Running Locally

@@ -180,27 +180,30 @@ void clusterKptMatchesWithROI(BoundingBox &boundingBox, std::vector<cv::KeyPoint
         }
     }
 
-    std::sort(matchesWithDistances.begin(),matchesWithDistances.end(),Compare);
-
-    int medianIndex = floor(matchesWithDistances.size()/2);
-    int q1Index = floor(matchesWithDistances.size()/4);
-    int q3Index = floor(matchesWithDistances.size()/4 * 3);
-
-    double medianDistance = matchesWithDistances[medianIndex].euclideanDistance;
-    double q1Distance = matchesWithDistances[q1Index].euclideanDistance;
-    double q3Distance = matchesWithDistances[q3Index].euclideanDistance;
-
-    double iqrDistance = q3Distance - q1Distance;
-
-    for(auto md = matchesWithDistances.begin(); md !=matchesWithDistances.end(); md++)
+    if (matchesWithDistances.size() > 2)
     {
-        bool isOutlier = md->euclideanDistance < q1Distance-iqrDistance && md->euclideanDistance > q3Distance+iqrDistance;
-        if(!isOutlier)
+        std::sort(matchesWithDistances.begin(),matchesWithDistances.end(),Compare);
+
+        int medianIndex = floor(matchesWithDistances.size()/2);
+        int q1Index = floor(matchesWithDistances.size()/4);
+        int q3Index = floor(matchesWithDistances.size()/4 * 3);
+
+        double medianDistance = matchesWithDistances[medianIndex].euclideanDistance;
+        double q1Distance = matchesWithDistances[q1Index].euclideanDistance;
+        double q3Distance = matchesWithDistances[q3Index].euclideanDistance;
+
+        double iqrDistance = q3Distance - q1Distance;
+
+        for(auto md = matchesWithDistances.begin(); md !=matchesWithDistances.end(); md++)
         {
-            kptsROI.push_back(md->match);
+            bool isOutlier = md->euclideanDistance < q1Distance-iqrDistance && md->euclideanDistance > q3Distance+iqrDistance;
+            if(!isOutlier)
+            {
+                kptsROI.push_back(md->match);
+            }
         }
     }
-
+    
     boundingBox.kptMatches = kptsROI;
 
 }

@@ -65,7 +65,7 @@ void clusterLidarWithROI(std::vector<BoundingBox> &boundingBoxes, std::vector<Li
 }
 
 
-void show3DObjects(std::vector<BoundingBox> &boundingBoxes, cv::Size2f worldSize, cv::Size imageSize, bool bWait)
+void show3DObjects(std::vector<BoundingBox> &boundingBoxes, cv::Size2f worldSize, cv::Size imageSize, bool bWait, string imgTitle)
 {
 	//to better visual lidar point top view, fix the starting world size as 6
 	const float START_HEIGHT = 6.8;
@@ -134,10 +134,27 @@ void show3DObjects(std::vector<BoundingBox> &boundingBoxes, cv::Size2f worldSize
     {
         std::cout << "show3DObjects - press key to continue..." << std::endl;
     	// display image
-		string windowName = "3D Objects";
+		string windowName = "3D Objects" + imgTitle;
 		cv::namedWindow(windowName, 1);
 		cv::imshow(windowName, topviewImg);
         cv::waitKey(0); 
+    }
+    else
+    {
+        string fileName = imgTitle + ".jpg"; 
+        try
+        {
+            result = imwrite(fileName, topviewImg);
+        }
+        catch (const cv::Exception& ex)
+        {
+            std::cout << "Exception converting image in show3DObjects: " << ex.what() << std::endl;
+        }
+        if (result)
+            std::cout << "Saved JPG file in show3DObjects." << std::endl;
+        else
+            std::cout << "ERROR: Couldn't save image in show3DObjects." << std::endl;
+        }
     }
 }
 

@@ -90,7 +90,7 @@ void runSeriesOfExperiments()
 		for(auto descriptor: {"BRISK", "ORB", "SIFT"})   // "SIFT", "AKAZE"
         {
 			if (string(detector).compare("SIFT") == 0 && string(descriptor).compare("ORB") == 0) continue;
-			experiment(detector, descriptor, results, false, 25);
+			experiment(detector, descriptor, results, false, 50);
 		}
 	}
 
@@ -148,7 +148,7 @@ int experiment(string detectorType, string descriptorType, std::map<std::string,
     double sensorFrameRate = 10.0 / imgStepWidth; // frames per second for Lidar and camera
     int dataBufferSize = 2;       // no. of images which are held in memory (ring buffer) at the same time
     vector<DataFrame> dataBuffer; // list of data frames which are held in memory at the same time
-    bool bVis = false;            // visualize results
+    bool bVis = true;            // visualize results
 
     /* MAIN LOOP OVER ALL IMAGES */
 
@@ -210,7 +210,7 @@ int experiment(string detectorType, string descriptorType, std::map<std::string,
         clusterLidarWithROI((dataBuffer.end()-1)->boundingBoxes, (dataBuffer.end() - 1)->lidarPoints, shrinkFactor, P_rect_00, R_rect_00, RT);
 
         // Visualize 3D objects
-        show3DObjects((dataBuffer.end()-1)->boundingBoxes, cv::Size2f(4.0, 8.5), cv::Size(800, 800), bWait);
+        show3DObjects((dataBuffer.end()-1)->boundingBoxes, cv::Size2f(4.0, 8.5), cv::Size(800, 800), bWait, "lidar_points_" + frame.imgID + ".jpg");
 
         cout << "#4 : CLUSTER LIDAR POINT CLOUD done" << endl;
         
@@ -223,7 +223,7 @@ int experiment(string detectorType, string descriptorType, std::map<std::string,
         // extract 2D keypoints from current image
         vector<cv::KeyPoint> keypoints; // create empty feature list for current image
 
-        float detectorTime = detKeypoints(keypoints, imgGray, detectorType, bVis);
+        float detectorTime = detKeypoints(keypoints, imgGray, detectorType, bVis, "keypoints_" + detectorType + "_" + frame.imgID + ".jpg");
 
         // optional : limit number of keypoints (helpful for debugging and learning)
         bool bLimitKpts = false;
@@ -283,7 +283,8 @@ int experiment(string detectorType, string descriptorType, std::map<std::string,
             map<int, int> bbBestMatches;
             matchBoundingBoxes(matches, bbBestMatches, *(dataBuffer.end()-2), *(dataBuffer.end()-1)); // associate bounding boxes between current and previous frame using keypoint matches
            
-			show3DObjects((dataBuffer.end()-1)->boundingBoxes, cv::Size2f(4.0, 8.5), cv::Size(800, 800), bWait);
+			show3DObjects((dataBuffer.end()-1)->boundingBoxes, cv::Size2f(4.0, 8.5), 
+                                                               cv::Size(800, 800), bWait, "3d_objects_" + frame.imgFile + ".jpg");
             //// EOF STUDENT ASSIGNMENT
 
             // store matches in current data frame
@@ -329,6 +330,7 @@ int experiment(string detectorType, string descriptorType, std::map<std::string,
                     //// TASK FP.4 -> compute time-to-collision based on camera (implement -> computeTTCCamera)
                     double ttcCamera;
                     clusterKptMatchesWithROI(*currBB, (dataBuffer.end() - 2)->keypoints, (dataBuffer.end() - 1)->keypoints, (dataBuffer.end() - 1)->kptMatches);
+                    
                     computeTTCCamera((dataBuffer.end() - 2)->keypoints, (dataBuffer.end() - 1)->keypoints, currBB->kptMatches, sensorFrameRate, ttcCamera);
                     //// EOF STUDENT ASSIGNMENT
 
@@ -348,21 +350,38 @@ int experiment(string detectorType, string descriptorType, std::map<std::string,
                     r.processingTime = processingTime;
                     result[detectorName].push_back(r);
 
+                    cv::Mat visImg = (dataBuffer.end() - 1)->cameraImg.clone();
+                    showLidarImgOverlay(visImg, currBB->lidarPoints, P_rect_00, R_rect_00, RT, &visImg);
+                    cv::rectangle(visImg, cv::Point(currBB->roi.x, currBB->roi.y), cv::Point(currBB->roi.x + currBB->roi.width, currBB->roi.y + currBB->roi.height), cv::Scalar(0, 255, 0), 2);
+                    
+                    char str[200];
+                    sprintf(str, "TTC Lidar : %f s, TTC Camera : %f s", ttcLidar, ttcCamera);
+                    putText(visImg, str, cv::Point2f(80, 50), cv::FONT_HERSHEY_PLAIN, 2, cv::Scalar(0,0,255));
+
                     if (bWait)
                     {
-                        cv::Mat visImg = (dataBuffer.end() - 1)->cameraImg.clone();
-                        showLidarImgOverlay(visImg, currBB->lidarPoints, P_rect_00, R_rect_00, RT, &visImg);
-                        cv::rectangle(visImg, cv::Point(currBB->roi.x, currBB->roi.y), cv::Point(currBB->roi.x + currBB->roi.width, currBB->roi.y + currBB->roi.height), cv::Scalar(0, 255, 0), 2);
-                        
-                        char str[200];
-                        sprintf(str, "TTC Lidar : %f s, TTC Camera : %f s", ttcLidar, ttcCamera);
-                        putText(visImg, str, cv::Point2f(80, 50), cv::FONT_HERSHEY_PLAIN, 2, cv::Scalar(0,0,255));
-
                         string windowName = "Final Results : TTC";
                         cv::namedWindow(windowName, 1);
                         cv::imshow(windowName, visImg);
                         cout << "Press key to continue to next frame" << endl;
                         cv::waitKey(0);
+                    }
+                    else
+                    {
+                        string fileName = "ttc_lidar_vs_ttc_camera_" + descriptorType + "_" + detectorType + "_" + frame.imgFile + ".jpg"; 
+                        try
+                        {
+                            result = imwrite(fileName, visImg);
+                        }
+                        catch (const cv::Exception& ex)
+                        {
+                            std::cout << "Exception converting image in experiment: " << ex.what() << std::endl;
+                        }
+                        if (result)
+                            std::cout << "Saved JPG file in experiment." << std::endl;
+                        else
+                            std::cout << "ERROR: Couldn't save image in experiment." << std::endl;
+                        }
                     }
 
                 } // eof TTC computation

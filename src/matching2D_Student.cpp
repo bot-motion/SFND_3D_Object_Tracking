@@ -189,7 +189,7 @@ void detKeypointsHarris(std::vector<cv::KeyPoint> &keypoints, cv::Mat &img)
 
 
 float detKeypoints(std::vector<cv::KeyPoint> &keypoints, cv::Mat &img,
-                        std::string detectorType, bool bVis) 
+                        std::string detectorType, bool bVis, string fileName) 
 {
   cv::Ptr<cv::FeatureDetector> detector;
   double t_start, period;
@@ -253,6 +253,21 @@ float detKeypoints(std::vector<cv::KeyPoint> &keypoints, cv::Mat &img,
     cv::imshow(windowName, visImage);
     cv::waitKey(0);
   }
-
+  else
+  {
+    try
+    {
+        result = imwrite(fileName, visImage);
+    }
+    catch (const cv::Exception& ex)
+    {
+        std::cout << "Exception converting image in detKeypoints: " << ex.what() << std::endl;
+    }
+    if (result)
+        std::cout << "Saved JPG file in detKeypoints." << std::endl;
+    else
+        std::cout << "ERROR: Couldn't save image in detKeypoints: " << fileName << std::endl;
+    }
+  }
   return period;
 }

@@ -244,17 +244,20 @@ float detKeypoints(std::vector<cv::KeyPoint> &keypoints, cv::Mat &img,
   cout << detectorType << " detector with n= " << keypoints.size() << " keypoints in "
        << period << " ms" << endl;
 
-  if (bVis) {
+  cv::Mat visImage = img.clone();
+  cv::drawKeypoints(img, keypoints, visImage, cv::Scalar::all(-1),
+                    cv::DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
+
+  if (bVis) 
+  {
     string windowName = detectorType + " Detection Results";
     cv::namedWindow(windowName, cv::WINDOW_AUTOSIZE);
-    cv::Mat visImage = img.clone();
-    cv::drawKeypoints(img, keypoints, visImage, cv::Scalar::all(-1),
-                      cv::DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
     cv::imshow(windowName, visImage);
     cv::waitKey(0);
   }
   else
   {
+    bool result;
     try
     {
         result = imwrite(fileName, visImage);
@@ -267,7 +270,7 @@ float detKeypoints(std::vector<cv::KeyPoint> &keypoints, cv::Mat &img,
         std::cout << "Saved JPG file in detKeypoints." << std::endl;
     else
         std::cout << "ERROR: Couldn't save image in detKeypoints: " << fileName << std::endl;
-    }
+    
   }
   return period;
 }

@@ -143,9 +143,10 @@ void show3DObjects(std::vector<BoundingBox> &boundingBoxes, cv::Size2f worldSize
     else
     {
         string fileName = imgTitle + ".jpg"; 
+        bool result;
         try
         {
-            bool result = imwrite(fileName, topviewImg);
+            result = imwrite(fileName, topviewImg);
         }
         catch (const cv::Exception& ex)
         {

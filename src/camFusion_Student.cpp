@@ -156,7 +156,6 @@ void show3DObjects(std::vector<BoundingBox> &boundingBoxes, cv::Size2f worldSize
             std::cout << "Saved JPG file in show3DObjects." << std::endl;
         else
             std::cout << "ERROR: Couldn't save image in show3DObjects." << std::endl;
-        }
     }
 }
 

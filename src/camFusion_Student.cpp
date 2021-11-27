@@ -142,7 +142,7 @@ void show3DObjects(std::vector<BoundingBox> &boundingBoxes, cv::Size2f worldSize
     }
     else
     {
-        string fileName = imgTitle + ".jpg"; 
+        string fileName = imgTitle; 
         bool result;
         try
         {

@@ -15,7 +15,7 @@ using namespace std;
 // detects objects in an image using the YOLO library and a set of pre-trained objects from the COCO database;
 // a set of 80 classes is listed in "coco.names" and pre-trained weights are stored in "yolov3.weights"
 void detectObjects(cv::Mat& img, std::vector<BoundingBox>& bBoxes, float confThreshold, float nmsThreshold, 
-                   std::string basePath, std::string classesFile, std::string modelConfiguration, std::string modelWeights, bool bVis)
+                   std::string basePath, std::string classesFile, std::string modelConfiguration, std::string modelWeights, bool bVis, std::string imgTitle)
 {
     // load class names from file
     vector<string> classes;
@@ -96,34 +96,50 @@ void detectObjects(cv::Mat& img, std::vector<BoundingBox>& bBoxes, float confThr
     }
     
     // show results
-    if(bVis) {
+    cv::Mat visImg = img.clone();
+    for(auto it=bBoxes.begin(); it!=bBoxes.end(); ++it) {
         
-        cv::Mat visImg = img.clone();
-        for(auto it=bBoxes.begin(); it!=bBoxes.end(); ++it) {
-            
-            // Draw rectangle displaying the bounding box
-            int top, left, width, height;
-            top = (*it).roi.y;
-            left = (*it).roi.x;
-            width = (*it).roi.width;
-            height = (*it).roi.height;
-            cv::rectangle(visImg, cv::Point(left, top), cv::Point(left+width, top+height),cv::Scalar(0, 255, 0), 2);
-            
-            string label = cv::format("%.2f", (*it).confidence);
-            label = classes[((*it).classID)] + ":" + label;
+        // Draw rectangle displaying the bounding box
+        int top, left, width, height;
+        top = (*it).roi.y;
+        left = (*it).roi.x;
+        width = (*it).roi.width;
+        height = (*it).roi.height;
+        cv::rectangle(visImg, cv::Point(left, top), cv::Point(left+width, top+height),cv::Scalar(0, 255, 0), 2);
         
-            // Display label at the top of the bounding box
-            int baseLine;
-            cv::Size labelSize = getTextSize(label, cv::FONT_ITALIC, 0.5, 1, &baseLine);
-            top = max(top, labelSize.height);
-            rectangle(visImg, cv::Point(left, top - round(1.5*labelSize.height)), cv::Point(left + round(1.5*labelSize.width), top + baseLine), cv::Scalar(255, 255, 255), cv::FILLED);
-            cv::putText(visImg, label, cv::Point(left, top), cv::FONT_ITALIC, 0.75, cv::Scalar(0,0,0),1);
-            
-        }
+        string label = cv::format("%.2f", (*it).confidence);
+        label = classes[((*it).classID)] + ":" + label;
+    
+        // Display label at the top of the bounding box
+        int baseLine;
+        cv::Size labelSize = getTextSize(label, cv::FONT_ITALIC, 0.5, 1, &baseLine);
+        top = max(top, labelSize.height);
+        rectangle(visImg, cv::Point(left, top - round(1.5*labelSize.height)), cv::Point(left + round(1.5*labelSize.width), top + baseLine), cv::Scalar(255, 255, 255), cv::FILLED);
+        cv::putText(visImg, label, cv::Point(left, top), cv::FONT_ITALIC, 0.75, cv::Scalar(0,0,0),1);
         
+    }
+    
+    if(bVis) {        
         string windowName = "Object classification";
         cv::namedWindow( windowName, 1 );
         cv::imshow( windowName, visImg );
         cv::waitKey(0); // wait for key to be pressed
+    }
+    else
+    {
+        std::string fileName = imgTitle; 
+        bool result;
+        try
+        {
+            result = imwrite(fileName, visImg);
+        }
+        catch (const cv::Exception& ex)
+        {
+            std::cout << "Exception converting image in detectObjects: " << ex.what() << std::endl;
+        }
+        if (result)
+            std::cout << "Saved JPG file in detectObjects." << std::endl;
+        else
+            std::cout << "ERROR: Couldn't save image in detectObjects." << std::endl;
     }
 }

@@ -210,7 +210,7 @@ int experiment(string detectorType, string descriptorType, std::map<std::string,
         clusterLidarWithROI((dataBuffer.end()-1)->boundingBoxes, (dataBuffer.end() - 1)->lidarPoints, shrinkFactor, P_rect_00, R_rect_00, RT);
 
         // Visualize 3D objects
-        show3DObjects((dataBuffer.end()-1)->boundingBoxes, cv::Size2f(4.0, 8.5), cv::Size(800, 800), bWait, "lidar_points_" + frame.imgFile + ".jpg");
+        show3DObjects((dataBuffer.end()-1)->boundingBoxes, cv::Size2f(4.0, 8.5), cv::Size(800, 800), bWait, "lidar_points_" + frame.imgFile);
 
         cout << "#4 : CLUSTER LIDAR POINT CLOUD done" << endl;
         
@@ -223,7 +223,7 @@ int experiment(string detectorType, string descriptorType, std::map<std::string,
         // extract 2D keypoints from current image
         vector<cv::KeyPoint> keypoints; // create empty feature list for current image
 
-        float detectorTime = detKeypoints(keypoints, imgGray, detectorType, bVis, "keypoints_" + detectorType + "_" + frame.imgFile + ".jpg");
+        float detectorTime = detKeypoints(keypoints, imgGray, detectorType, false, "keypoints_" + detectorType + "_" + frame.imgFile);
 
         // optional : limit number of keypoints (helpful for debugging and learning)
         bool bLimitKpts = false;
@@ -284,7 +284,7 @@ int experiment(string detectorType, string descriptorType, std::map<std::string,
             matchBoundingBoxes(matches, bbBestMatches, *(dataBuffer.end()-2), *(dataBuffer.end()-1)); // associate bounding boxes between current and previous frame using keypoint matches
            
 			show3DObjects((dataBuffer.end()-1)->boundingBoxes, cv::Size2f(4.0, 8.5), 
-                                                               cv::Size(800, 800), bWait, "3d_objects_" + frame.imgFile + ".jpg");
+                                                               cv::Size(800, 800), bWait, "3d_objects_" + frame.imgFile);
             //// EOF STUDENT ASSIGNMENT
 
             // store matches in current data frame
@@ -368,7 +368,7 @@ int experiment(string detectorType, string descriptorType, std::map<std::string,
                     }
                     else
                     {
-                        string fileName = "ttc_lidar_vs_ttc_camera_" + descriptorType + "_" + detectorType + "_" + frame.imgFile + ".jpg"; 
+                        string fileName = "ttc_lidar_vs_ttc_camera_" + descriptorType + "_" + detectorType + "_" + frame.imgFile; 
                         bool resultWriteOp;
                         try
                         {

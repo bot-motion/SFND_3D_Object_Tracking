@@ -52,9 +52,10 @@ The following are reports on the various tests conducted with the framework. The
 
 Small fluctuations in lidar data can lead to wrong results when relative speed between the ego vehicle and the front vehicle is small. On the graph above we see a wrong estimate at frame 7. Compare the top views for frame 7 and 14 respectively:
 
-<img src="images/lidar_points_0007.png"/>   <img src="images/lidar_points_0014.png"/>
+<img src="images/lidar_points_0007.png" width=400 height=400/>   <img src="images/lidar_points_0014.png"  width=400 height=400/>
 
-There are several ghost points in frame 7 that confuse the algorithm.
+There are several ghost points in frame 7 that confuse the algorithm. After that frame the lidar is in range with the TTC estimate by the camera.
+When front and ego car stop at the very end of the sequence, both estimates become highly unreliable as can be seen in the longer time series above.
 
 <img src="images/lidar.gif"/>
 

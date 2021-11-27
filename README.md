@@ -54,7 +54,8 @@ Small fluctuations in lidar data can lead to wrong results when relative speed b
 
 <img src="images/lidar_points_0007.png" width=400 height=400/>   <img src="images/lidar_points_0014.png"  width=400 height=400/>
 
-There are several ghost points in frame 7 that confuse the algorithm. After that frame the lidar is in range with the TTC estimate by the camera.
+There are several ghost points in frame 7 that confuse the algorithm. After that frame the lidar is in range with the TTC estimate by the camera
+until the very end of the sequence.
 
 <img src="images/lidar.gif"/>
 

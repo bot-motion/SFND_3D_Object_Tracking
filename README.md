@@ -55,14 +55,15 @@ Small fluctuations in lidar data can lead to wrong results when relative speed b
 <img src="images/lidar_points_0007.png" width=400 height=400/>   <img src="images/lidar_points_0014.png"  width=400 height=400/>
 
 There are several ghost points in frame 7 that confuse the algorithm. After that frame the lidar is in range with the TTC estimate by the camera.
-When front and ego car stop at the very end of the sequence, both estimates become highly unreliable as can be seen in the longer time series above.
 
 <img src="images/lidar.gif"/>
 
 Another cause is varying relative speed, since we're working with a model that presumes constant relative speed.
 
 The reflection of the lidar in reflective surfaces (like the metallic surface of the front car) can create incorrect values. 
-These errors are more significant if the front car is closer. 
+These errors are more significant if the front car is closer. When front and ego car stop at the very end of the sequence, 
+both estimates become highly unreliable as can be seen in the longer time series above. The animation shows that the back light of the 
+front car is used for estimation instead of the whole back of the front car.
 
 ## Finding suitable detector/descriptor combos for camera-based TTC estimation
 

@@ -2,6 +2,7 @@
 #include <iostream>
 #include <algorithm>
 #include <numeric>
+#include <string>
 #include <utility>
 #include <opencv2/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
@@ -144,7 +145,7 @@ void show3DObjects(std::vector<BoundingBox> &boundingBoxes, cv::Size2f worldSize
         string fileName = imgTitle + ".jpg"; 
         try
         {
-            result = imwrite(fileName, topviewImg);
+            bool result = imwrite(fileName, topviewImg);
         }
         catch (const cv::Exception& ex)
         {

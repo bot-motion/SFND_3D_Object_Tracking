@@ -371,16 +371,16 @@ int experiment(string detectorType, string descriptorType, std::map<std::string,
                         string fileName = "ttc_lidar_vs_ttc_camera_" + descriptorType + "_" + detectorType + "_" + frame.imgFile + ".jpg"; 
                         try
                         {
-                            result = imwrite(fileName, visImg);
+                            bool resultWriteOp = imwrite(fileName, visImg);
                         }
                         catch (const cv::Exception& ex)
                         {
                             std::cout << "Exception converting image in experiment: " << ex.what() << std::endl;
                         }
-                        if (result)
+                        if (resultWriteOp)
                             std::cout << "Saved JPG file in experiment." << std::endl;
                         else
-                            std::cout << "ERROR: Couldn't save image in experiment." << std::endl;
+                            std::cout << "ERROR: Couldn't save image ttc_lidar in experiment." << std::endl;
                         }
                     }
 

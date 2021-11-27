@@ -210,7 +210,7 @@ int experiment(string detectorType, string descriptorType, std::map<std::string,
         clusterLidarWithROI((dataBuffer.end()-1)->boundingBoxes, (dataBuffer.end() - 1)->lidarPoints, shrinkFactor, P_rect_00, R_rect_00, RT);
 
         // Visualize 3D objects
-        show3DObjects((dataBuffer.end()-1)->boundingBoxes, cv::Size2f(4.0, 8.5), cv::Size(800, 800), bWait, "lidar_points_" + frame.imgID + ".jpg");
+        show3DObjects((dataBuffer.end()-1)->boundingBoxes, cv::Size2f(4.0, 8.5), cv::Size(800, 800), bWait, "lidar_points_" + frame.imgFile + ".jpg");
 
         cout << "#4 : CLUSTER LIDAR POINT CLOUD done" << endl;
         
@@ -223,7 +223,7 @@ int experiment(string detectorType, string descriptorType, std::map<std::string,
         // extract 2D keypoints from current image
         vector<cv::KeyPoint> keypoints; // create empty feature list for current image
 
-        float detectorTime = detKeypoints(keypoints, imgGray, detectorType, bVis, "keypoints_" + detectorType + "_" + frame.imgID + ".jpg");
+        float detectorTime = detKeypoints(keypoints, imgGray, detectorType, bVis, "keypoints_" + detectorType + "_" + frame.imgFile + ".jpg");
 
         // optional : limit number of keypoints (helpful for debugging and learning)
         bool bLimitKpts = false;
@@ -369,9 +369,10 @@ int experiment(string detectorType, string descriptorType, std::map<std::string,
                     else
                     {
                         string fileName = "ttc_lidar_vs_ttc_camera_" + descriptorType + "_" + detectorType + "_" + frame.imgFile + ".jpg"; 
+                        bool resultWriteOp;
                         try
                         {
-                            bool resultWriteOp = imwrite(fileName, visImg);
+                            resultWriteOp = imwrite(fileName, visImg);
                         }
                         catch (const cv::Exception& ex)
                         {
@@ -381,7 +382,7 @@ int experiment(string detectorType, string descriptorType, std::map<std::string,
                             std::cout << "Saved JPG file in experiment." << std::endl;
                         else
                             std::cout << "ERROR: Couldn't save image ttc_lidar in experiment." << std::endl;
-                        }
+                        
                     }
 
                 } // eof TTC computation

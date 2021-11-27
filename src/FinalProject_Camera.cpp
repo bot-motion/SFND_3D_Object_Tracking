@@ -182,7 +182,7 @@ int experiment(string detectorType, string descriptorType, std::map<std::string,
         float confThreshold = 0.2;
         float nmsThreshold = 0.4;        
         detectObjects((dataBuffer.end() - 1)->cameraImg, (dataBuffer.end() - 1)->boundingBoxes, confThreshold, nmsThreshold,
-                      yoloBasePath, yoloClassesFile, yoloModelConfiguration, yoloModelWeights, bWait);
+                      yoloBasePath, yoloClassesFile, yoloModelConfiguration, yoloModelWeights, bWait, "3d_objects_yolo_" + frame.imgFile);
 
         cout << "#2 : DETECT & CLASSIFY OBJECTS done" << endl;
 

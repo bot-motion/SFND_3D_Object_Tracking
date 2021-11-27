@@ -379,7 +379,7 @@ int experiment(string detectorType, string descriptorType, std::map<std::string,
                             std::cout << "Exception converting image in experiment: " << ex.what() << std::endl;
                         }
                         if (resultWriteOp)
-                            std::cout << "Saved JPG file in experiment." << std::endl;
+                            std::cout << "Saved " << imgFileType << " file in experiment." << std::endl;
                         else
                             std::cout << "ERROR: Couldn't save image ttc_lidar in experiment." << std::endl;
                         
